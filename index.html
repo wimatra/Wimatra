@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM_WIRA // INTERFACE</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Orbitron (Game HUD) & Plus Jakarta Sans (Formal Academic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        hud: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        mako: {
+                            DEFAULT: '#10b981',
+                            light: '#34d399',
+                            dark: '#065f46',
+                            glow: '#059669'
+                        },
+                        darkBg: '#040811',
+                        darkCard: 'rgba(11, 19, 38, 0.85)',
+                        hudBlue: {
+                            DEFAULT: '#22d3ee',
+                            light: '#67e8f9',
+                            dark: '#0e7490',
+                        },
+                        academicBlue: {
+                            DEFAULT: '#2563eb',
+                            light: '#3b82f6',
+                            dark: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* CSS Variables for Dynamic Mode Painting */
+        :root {
+            --theme-accent: #10b981;
+            --theme-accent-glow: rgba(16, 185, 129, 0.6);
+            --theme-border-color: rgba(16, 185, 129, 0.2);
+            --theme-grid-color: rgba(16, 185, 129, 0.03);
+        }
+
+        /* Webkit custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #040811;
+        }
+        body[data-mode="academic"] ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-accent);
+            border-radius: 4px;
+        }
+
+        /* 3D Scanlines Overlay ONLY for Creative Mode */
+        body[data-mode="creative"]::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+            z-index: 999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* 1. CREATIVE DECK PANELS (FF7 Slanted Corner Design) */
+        body[data-mode="creative"] .ff-panel { 
+            background: linear-gradient(135deg, rgba(20, 26, 35, 0.95) 0%, rgba(11, 14, 18, 0.98) 100%);
+            border: 1px solid var(--theme-border-color);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+        body[data-mode="creative"] .ff-btn-slant {
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        }
+
+        /* 2. ACADEMIC DECK PANELS (Ultra Professional Clean Board-style) */
+        body[data-mode="academic"] .ff-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            border-radius: 1rem; /* rounded-2xl */
+            clip-path: none !important;
+        }
+        body[data-mode="academic"] .ff-btn-slant {
+            border-radius: 0.5rem;
+            clip-path: none !important;
+        }
+
+        /* Tactical Grid Backgrounds */
+        .grid-backdrop {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, var(--theme-grid-color) 1px, transparent 1px),
+                              linear-gradient(to bottom, var(--theme-grid-color) 1px, transparent 1px);
+        }
+
+        /* Reveal In-view Observer Animation */
+        .reveal {
+            opacity: 0;
+            transform: scale(0.97) translateY(15px);
+            filter: blur(4px);
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0px);
+        }
+
+        /* --- SSS / MYTHIC DYNAMIC GLINTS (Right to Left sweep) --- */
+        @keyframes shine-sweep-rtl {
+            0% { transform: translateX(150%); }
+            100% { transform: translateX(-150%); }
+        }
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.13) 50%, transparent);
+            transform: translateX(150%);
+            animation: shine-sweep-rtl 3.5s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* --- EDUCATION DYNAMIC GLINTS (Left to Right sweep) --- */
+        @keyframes shine-sweep-ltr {
+            0% { transform: translateX(-150%); }
+            100% { transform: translateX(150%); }
+        }
+        .shine-effect-ltr {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect-ltr::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.15) 50%, transparent);
+            transform: translateX(-150%);
+            animation: shine-sweep-ltr 4s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Dynamic Border Pelangi Berputar (SSS // MYTHIC cards border) */
+        @keyframes rotate-rainbow {
+            0% { border-color: #f43f5e; box-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+            20% { border-color: #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
+            40% { border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+            60% { border-color: #06b6d4; box-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+            80% { border-color: #8b5cf6; box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+            100% { border-color: #f43f5e; box-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+        }
+        .mythic-card-border {
+            border-width: 1.5px !important;
+            animation: rotate-rainbow 6s infinite linear;
+        }
+
+        /* Silver Dynamic Metallic Border with ENHANCED Luxury Glow for Master Degree */
+        @keyframes silver-shimmer {
+            0% { border-color: #475569; box-shadow: 0 0 8px rgba(148, 163, 184, 0.3); }
+            50% { border-color: #f1f5f9; box-shadow: 0 0 25px rgba(255, 255, 255, 0.85), inset 0 0 12px rgba(255, 255, 255, 0.35); }
+            100% { border-color: #475569; box-shadow: 0 0 8px rgba(148, 163, 184, 0.3); }
+        }
+        .silver-card-border {
+            border-width: 2px !important;
+            animation: silver-shimmer 3s infinite ease-in-out;
+        }
+
+        /* Bronze/Amber Dynamic Metallic Border with ENHANCED Luxury Glow for Bachelor Degree */
+        @keyframes bronze-shimmer {
+            0% { border-color: #78350f; box-shadow: 0 0 8px rgba(120, 53, 15, 0.3); }
+            50% { border-color: #fbbf24; box-shadow: 0 0 25px rgba(245, 158, 11, 0.85), inset 0 0 12px rgba(245, 158, 11, 0.35); }
+            100% { border-color: #78350f; box-shadow: 0 0 8px rgba(120, 53, 15, 0.3); }
+        }
+        .bronze-card-border {
+            border-width: 2px !important;
+            animation: bronze-shimmer 3s infinite ease-in-out;
+        }
+
+        /* ULTRA-PREMIUM METALLIC LUX SHINE SWEEPS */
+        @keyframes shine-sweep-silver {
+            0% { transform: translateX(-150%) skewX(-20deg); }
+            100% { transform: translateX(150%) skewX(-20deg); }
+        }
+        .silver-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .silver-shine::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05) 30%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.05) 70%, transparent);
+            transform: translateX(-150%) skewX(-20deg);
+            animation: shine-sweep-silver 2.8s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes shine-sweep-bronze {
+            0% { transform: translateX(-150%) skewX(-20deg); }
+            100% { transform: translateX(150%) skewX(-20deg); }
+        }
+        .bronze-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .bronze-shine::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(245,158,11,0.05) 30%, rgba(253,224,71,0.75) 50%, rgba(245,158,11,0.05) 70%, transparent);
+            transform: translateX(-150%) skewX(-20deg);
+            animation: shine-sweep-bronze 3s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* --- PRESTIGE BADGE RANK THEMES (NEW & PERFECTED) --- */
+        @keyframes rainbow-badge-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes sss-badge-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(244, 63, 94, 0.6), inset 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 22px rgba(6, 182, 212, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.7); }
+        }
+        @keyframes badge-glint-sweep {
+            0% { transform: translateX(-150%) skewX(-25deg); }
+            35%, 100% { transform: translateX(150%) skewX(-25deg); }
+        }
+        
+        /* SSS Badge: Rainbow solid fill + high frequency specular glint */
+        .rank-badge-sss {
+            background: linear-gradient(90deg, #ff2a5f, #ff7e40, #ffeb3b, #10b981, #00f0ff, #7b2cbf, #ff2a5f);
+            background-size: 300% 100%;
+            animation: rainbow-badge-bg 3.5s linear infinite, sss-badge-glow 2.5s ease-in-out infinite;
+            color: #0c1322 !important;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            padding: 4px 10px;
+            letter-spacing: 0.1em;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .rank-badge-sss::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.95), transparent);
+            transform: translateX(-150%) skewX(-25deg);
+            animation: badge-glint-sweep 1.8s infinite ease-in-out;
+        }
+
+        /* SS Badge: Platinum solid fill + reflective shimmer */
+        @keyframes ss-badge-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(226, 232, 240, 0.5), inset 0 0 4px rgba(255, 255, 255, 0.4); }
+            50% { box-shadow: 0 0 18px rgba(255, 255, 255, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.6); }
+        }
+        .rank-badge-ss {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 75%, #f8fafc 100%);
+            animation: ss-badge-glow 3s ease-in-out infinite;
+            color: #0f172a !important;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            border: 1.5px solid #cbd5e1;
+            position: relative;
+            overflow: hidden;
+            padding: 4px 10px;
+            letter-spacing: 0.1em;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 4px;
+            font-size: 11px;
+            text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.5);
+        }
+        .rank-badge-ss::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+            transform: translateX(-150%) skewX(-20deg);
+            animation: badge-glint-sweep 2.2s infinite ease-in-out;
+        }
+
+        /* S Badge: Solid gold fill + bright shimmering */
+        @keyframes s-badge-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 4px rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.7), inset 0 0 8px rgba(255, 255, 255, 0.5); }
+        }
+        .rank-badge-s {
+            background: linear-gradient(135deg, #fef08a 0%, #fbbf24 35%, #ca8a04 70%, #fef3c7 100%);
+            animation: s-badge-glow 3s ease-in-out infinite;
+            color: #451a03 !important;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            border: 1.5px solid #fbbf24;
+            position: relative;
+            overflow: hidden;
+            padding: 4px 10px;
+            letter-spacing: 0.1em;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 4px;
+            font-size: 11px;
+            text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.5);
+        }
+        .rank-badge-s::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%; width: 200%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.7), transparent);
+            transform: translateX(-150%) skewX(-20deg);
+            animation: badge-glint-sweep 2.4s infinite ease-in-out;
+        }
+
+        /* Difficulty Badge Templates */
+        .diff-badge-expert {
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            background-color: rgba(168, 85, 247, 0.1);
+            color: #c084fc;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+        .diff-badge-extreme {
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+        .diff-badge-hard {
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            background-color: rgba(249, 115, 22, 0.1);
+            color: #fb923c;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Faction System Badge Base */
+        .faction-sys-badge {
+            background-color: #070d19;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Sound chime shake triggered from boot sequence completion */
+        .shake-active {
+            animation: intenseShake 0.4s ease-in-out infinite;
+        }
+        @keyframes intenseShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 2px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-2px, -2px) rotate(0.5deg); }
+            80% { transform: translate(2px, 2px) rotate(-0.5deg); }
+        }
+
+        /* Materia Orb Pulsing with Radial specular highlight matching image_789... */
+        .materia-orb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9) 0%, currentColor 50%, rgba(0, 0, 0, 0.8) 100%);
+            box-shadow: 0 0 12px currentColor;
+            animation: orbPulse 2s infinite ease-in-out;
+        }
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.15); filter: brightness(1.3); }
+        }
+
+        /* Dynamic Materia Color Injector Styles for Skill Bars with intense glow */
+        .materia-red {
+            background-color: #ef4444 !important;
+            box-shadow: 0 0 14px rgba(239, 68, 68, 0.95), 0 0 4px rgba(239, 68, 68, 0.5) !important;
+        }
+        .materia-green {
+            background-color: #10b981 !important;
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.95), 0 0 4px rgba(16, 185, 129, 0.5) !important;
+        }
+        .materia-yellow {
+            background-color: #eab308 !important;
+            box-shadow: 0 0 14px rgba(234, 179, 8, 0.95), 0 0 4px rgba(234, 179, 8, 0.5) !important;
+        }
+
+        /* Typing Blink Cursor */
+        .cursor-blink { animation: blink 0.8s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Blue MP-style Typewriter Glow Override */
+        .glow-cyan-text { 
+            color: #22d3ee !important;
+            text-shadow: 0 0 12px rgba(34, 211, 238, 0.95), 0 0 25px rgba(34, 211, 238, 0.5) !important; 
+        }
+
+        /* Hologram radar scanning sweep in contact section */
+        @keyframes radar-sweep {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .radar-sweep-element {
+            transform-origin: center;
+            animation: radar-sweep 8s infinite linear;
+        }
+
+        /* --- FFVII RETRO MONITOR STYLE --- */
+        .ffvii-window {
+            background: linear-gradient(135deg, #021e14 0%, #000000 100%);
+            border: 4px double #10b981;
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.45), inset 0 0 15px rgba(16, 185, 129, 0.2);
+            border-radius: 4px;
+            position: relative;
+        }
+        .ffvii-window::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(16, 185, 129, 0.05), transparent 40%);
+            pointer-events: none;
+        }
+
+        /* --- SPLIT SLIDING DOORS TRANSITION --- */
+        .choice-slide-left {
+            transform: translateX(-150%);
+            opacity: 0;
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s;
+        }
+        .choice-slide-right {
+            transform: translateX(150%);
+            opacity: 0;
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s;
+        }
+        .modal-active .choice-slide-left,
+        .modal-active .choice-slide-right {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* --- "Dua Dunia" Core Overwrite Engine (Creative vs Academic UI Isolation) --- */
+        body[data-mode="creative"] .academic-only { display: none !important; }
+        body[data-mode="academic"] .creative-only { display: none !important; }
+
+        /* Academic light theme force override colors */
+        body[data-mode="academic"] {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            --theme-accent: #2563eb;
+            --theme-accent-glow: rgba(37, 99, 235, 0.4);
+            --theme-border-color: #cbd5e1;
+            --theme-grid-color: rgba(37, 99, 235, 0.04);
+        }
+        body[data-mode="academic"] p,
+        body[data-mode="academic"] span:not(.font-hud),
+        body[data-mode="academic"] li,
+        body[data-mode="academic"] h1,
+        body[data-mode="academic"] h2,
+        body[data-mode="academic"] h3,
+        body[data-mode="academic"] h4,
+        body[data-mode="academic"] h5,
+        body[data-mode="academic"] a:not(.brand-logo):not(.brand-logo *) {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        body[data-mode="academic"] .font-hud {
+            font-family: 'Orbitron', sans-serif !important;
+        }
+        body[data-mode="academic"] .bg-mako {
+            background-color: #2563eb !important;
+        }
+        body[data-mode="academic"] .border-mako {
+            border-color: #cbd5e1 !important;
+        }
+        body[data-mode="academic"] .text-mako {
+            color: #2563eb !important;
+        }
+        body[data-mode="academic"] .text-mako-light {
+            color: #3b82f6 !important;
+        }
+        body[data-mode="academic"] header {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border-color: #e2e8f0 !important;
+        }
+        body[data-mode="academic"] h1, 
+        body[data-mode="academic"] h2, 
+        body[data-mode="academic"] h3, 
+        body[data-mode="academic"] h4, 
+        body[data-mode="academic"] h5 {
+            color: #0f172a !important;
+        }
+        body[data-mode="academic"] p,
+        body[data-mode="academic"] span:not(.font-hud),
+        body[data-mode="academic"] li {
+            color: #475569 !important;
+        }
+        body[data-mode="academic"] .nav-link {
+            color: #64748b !important;
+        }
+        body[data-mode="academic"] .nav-link.text-mako,
+        body[data-mode="academic"] .nav-link:hover {
+            color: #2563eb !important;
+        }
+        body[data-mode="academic"] section {
+            background-color: transparent !important;
+        }
+        body[data-mode="academic"] section:nth-of-type(even) {
+            background-color: #ffffff !important;
+        }
+        body[data-mode="academic"] footer {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+        }
+        body[data-mode="academic"] footer p,
+        body[data-mode="academic"] footer span {
+            color: #94a3b8 !important;
+        }
+        body[data-mode="academic"] footer .text-white {
+            color: #ffffff !important;
+        }
+
+        /* Contact Section Light Styling in Academic Mode */
+        body[data-mode="academic"] .contact-card {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+        body[data-mode="academic"] .contact-card h4 {
+            color: #64748b !important;
+        }
+        body[data-mode="academic"] .contact-card p,
+        body[data-mode="academic"] .contact-text {
+            color: #0f172a !important;
+        }
+        body[data-mode="academic"] .contact-icon {
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+            color: #2563eb !important;
+        }
+        body[data-mode="academic"] #contact-form input,
+        body[data-mode="academic"] #contact-form textarea {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+            border-radius: 0.5rem !important;
+        }
+        body[data-mode="academic"] #contact-form input::placeholder,
+        body[data-mode="academic"] #contact-form textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+        body[data-mode="academic"] #contact-form input:focus,
+        body[data-mode="academic"] #contact-form textarea:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+        }
+        body[data-mode="academic"] #contact-form button[type="submit"] {
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border-radius: 0.5rem !important;
+            clip-path: none !important;
+        }
+        body[data-mode="academic"] #contact-form button[type="submit"]:hover {
+            background-color: #1d4ed8 !important;
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 font-sans antialiased selection:bg-mako selection:text-black overflow-x-hidden relative grid-backdrop" data-mode="creative">
+
+    <!-- Kanvas Lifestream Taktis Interaktif -->
+    <canvas id="mako-lifestream" class="fixed inset-0 z-0 pointer-events-none opacity-50 creative-only"></canvas>
+
+    <!-- Kanvas Transisi Bulu Malaikat 3D Sephiroth (Z-Index Tinggi untuk Transisi Cinematic) -->
+    <canvas id="transition-canvas" class="fixed inset-0 z-[110] pointer-events-none"></canvas>
+
+    <!-- Lapisan Getar Kilat Layar Limit Break -->
+    <div id="limit-break-overlay" class="fixed inset-0 bg-white opacity-0 z-[100] transition-opacity duration-300 pointer-events-none"></div>
+
+    <!-- PINTU MASUK SINEMATIK: INTENSE BOOT SEQUENCE 3 DETIK (DENGAN LAYAR MONITOR FFVII CLASSIC) -->
+    <div id="boot-sequence" class="fixed inset-0 bg-[#02050a] z-[120] flex flex-col justify-center items-center p-6 sm:p-8 font-mono overflow-hidden">
+        
+        <!-- WRAPPER UNTUK MEMBUAT MONITOR DAN PROGRESS BAR SEJAJAR DAN DEKAT DI TENGAH PAGE -->
+        <div class="max-w-xl w-full flex flex-col space-y-6 items-center">
+            
+            <!-- Bingkai Monitor FFVII Klasik (Ukuran diperkecil 50%, layout terkunci stabil agar tidak menggeser bar) -->
+            <div class="w-full h-48 sm:h-56 flex-shrink-0 flex flex-col justify-between p-4 ffvii-window">
+                <div class="flex justify-between items-center border-b border-mako/20 pb-2 mb-2 flex-shrink-0">
+                    <span class="text-[11px] text-mako-light font-bold tracking-widest uppercase">// SYSTEM_BOOT_SEQUENCE</span>
+                    <span class="text-white text-xs font-bold">MON_ID: WIRA-99</span>
+                </div>
+                
+                <!-- Log-log Taktis Konsol di dalam Monitor dengan efek auto-scroll penuh -->
+                <div id="boot-logs-box" class="flex-grow overflow-y-auto space-y-1.5 pr-2 text-white scrollbar-thin">
+                    <!-- Disuntikkan secara dinamis oleh JavaScript -->
+                </div>
+            </div>
+
+            <!-- Progress Indicator (Satu wadah dekat dengan monitor) -->
+            <div class="w-full space-y-4 relative z-10">
+                <div id="boot-progress-container" class="flex justify-between items-end text-xs tracking-wider">
+                    <span class="text-mako animate-pulse font-bold">&gt; SYNCING_LIFESTREAM_NODES</span>
+                    <span id="boot-percent" class="text-white font-bold text-lg transition-all duration-300">0%</span>
+                </div>
+                <div class="w-full bg-gray-950 h-2.5 border border-mako/20 p-0.5">
+                    <div id="boot-progress-bar" class="bg-gradient-to-r from-mako to-mako-light h-full w-0 transition-all duration-75"></div>
+                </div>
+                
+                <button id="bypass-boot-btn" class="w-full text-center text-gray-500 hover:text-mako text-[11px] tracking-[0.25em] pt-2 uppercase transition-all duration-300">
+                    [ BYPASS BOOT SEQUENCE ]
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- PINTU MASUK PORTAL: DUAL FACTION SELECTION MODAL (DENGAN ANIMASI DUA PILIHAN TERBUKA) -->
+    <div id="dual-entry-modal" class="fixed inset-0 bg-darkBg/95 backdrop-blur-md z-[115] hidden items-center justify-center p-4">
+        <div class="max-w-3xl w-full bg-[#0a101d] border-2 border-mako/30 p-8 text-center relative overflow-hidden shadow-mako-glow-lg">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-mako/5 rotate-45"></div>
+            
+            <h2 class="font-hud text-xs text-mako tracking-[0.4em] mb-3 uppercase">// CHOOSE_YOUR_TERMINAL_FACTION</h2>
+            <h3 class="font-hud text-2xl sm:text-3xl text-white font-black mb-8 tracking-wider uppercase">AUTHORIZATION CORE GRANTED</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto overflow-hidden p-2">
+                <!-- Portal Kreatif (Sliding Left) -->
+                <div class="choice-slide-left h-full">
+                    <button id="select-creative-btn" class="group ff-panel p-6 border border-mako/20 hover:border-mako/70 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-mako-glow relative flex flex-col justify-between min-h-[190px] w-full">
+                        <div class="w-12 h-12 bg-mako/10 border border-mako/40 flex items-center justify-center text-mako mx-auto group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-gamepad text-2xl"></i>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-hud text-md font-bold text-white uppercase">Creative Realm</h4>
+                            <p class="text-[11px] text-gray-400 font-sans mt-2">Enter fully gamified interactive holographic environment styled with active mako particles, 3D slants, and visual statuses.</p>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Portal Akademis (Sliding Right) -->
+                <div class="choice-slide-right h-full">
+                    <button id="select-academic-btn" class="group ff-panel p-6 border border-blue-500/20 hover:border-blue-500/70 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-blue-glow relative flex flex-col justify-between min-h-[190px] w-full">
+                        <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/40 flex items-center justify-center text-blue-400 mx-auto group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-hud text-md font-bold text-white uppercase">Academic World</h4>
+                            <p class="text-[11px] text-gray-400 font-sans mt-2">Enter clean, formal, and structured light-mode credentials deck highlighted with citation stats and syllabus indexes.</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigasi HUD Atas -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-darkBg/85 backdrop-blur-md border-b border-mako/30 transition-all duration-300" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-12 lg:space-x-16">
+                <!-- Dynamic Faction Logo -->
+                <a href="#home" class="brand-logo flex items-center space-x-2 group flex-shrink-0">
+                    <span class="font-hud text-xl sm:text-2xl font-black tracking-widest text-white transition-all group-hover:text-mako creative-only">
+                        SYSTEM_<span class="text-mako group-hover:text-white">WIRA</span>
+                    </span>
+                    <span class="font-hud text-xl sm:text-2xl font-black tracking-widest text-slate-800 transition-all group-hover:text-blue-600 academic-only">
+                        SYSTEM_<span class="text-blue-600 group-hover:text-slate-800">WIRA</span>
+                    </span>
+                </a>
+                
+                <!-- Menu Utama (Dinamis Dua Dunia) -->
+                <nav class="hidden md:flex space-x-8 text-[11px] font-hud font-bold tracking-widest items-center">
+                    <a href="#home" class="nav-link text-mako transition-all duration-300 hover:scale-105 whitespace-nowrap" data-section="home">
+                        <span class="creative-only">// HOME</span>
+                        <span class="academic-only">HOME</span>
+                    </a>
+                    <a href="#tentang" class="nav-link text-gray-400 hover:text-mako transition-all duration-300 hover:scale-105 whitespace-nowrap" data-section="tentang">
+                        <span class="creative-only">// STATUS</span>
+                        <span class="academic-only">STATUS</span>
+                    </a>
+                    <a href="#keahlian" class="nav-link text-gray-400 hover:text-mako transition-all duration-300 hover:scale-105 whitespace-nowrap" data-section="keahlian">
+                        <span class="creative-only">// SKILLS</span>
+                        <span class="academic-only">SKILLS</span>
+                    </a>
+                    <a href="#pengalaman" class="nav-link text-gray-400 hover:text-mako transition-all duration-300 hover:scale-105 whitespace-nowrap" data-section="pengalaman">
+                        <span class="creative-only">// QUESTS</span>
+                        <span class="academic-only">WORK EXP</span>
+                    </a>
+                    <a href="#pendidikan" class="nav-link text-gray-400 hover:text-mako transition-all duration-300 hover:scale-105 whitespace-nowrap" data-section="pendidikan">
+                        <span class="creative-only">// INTEL</span>
+                        <span class="academic-only">ACADEMIC RECORD</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Panel Tombol Nav Sisi Kanan (Spasi Rapi Sesuai Permintaan - Tanpa Garis Vertikal Hijau) -->
+            <div class="hidden md:flex items-center space-x-8 lg:space-x-12">
+                <!-- Container Rata Seimbang Tanpa Border Vertikal -->
+                <div class="pl-12 lg:pl-16 flex-shrink-0 flex items-center space-x-6">
+                    <!-- Mode Switcher: Creative vs Academic -->
+                    <div class="flex bg-gray-900 border border-mako/30 p-1 font-hud text-[11px] tracking-wider font-bold h-10 items-center">
+                        <button class="mode-toggle-btn px-3 py-1 font-bold transition-all text-black bg-mako" data-mode="creative">CREATIVE</button>
+                        <button class="mode-toggle-btn px-3 py-1 font-bold transition-all text-gray-400 hover:text-white" data-mode="academic">ACADEMIC</button>
+                    </div>
+
+                    <a href="#kontak" class="ff-btn-slant bg-mako hover:bg-mako-light text-black font-hud font-extrabold text-[11px] tracking-widest px-6 py-3 transition-all transform hover:scale-105 hover:shadow-mako-glow block">
+                        TRANSMIT SIGNAL
+                    </a>
+                </div>
+            </div>
+
+            <!-- Menu Seluler Toggle Button -->
+            <button class="md:hidden text-mako hover:text-white focus:outline-none" id="menu-btn" aria-label="Toggle Menu">
+                <i class="fa-solid fa-gamepad text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Tampilan Menu Handphone (Dinamis Dua Dunia) -->
+        <div class="hidden md:hidden bg-darkBg/95 border-b border-mako/30 px-4 pt-2 pb-6 space-y-4 font-hud text-[11px] tracking-widest" id="mobile-menu">
+            <a href="#home" class="block text-gray-300 hover:text-mako py-2 font-bold">
+                <span class="creative-only">// HOME</span>
+                <span class="academic-only">HOME</span>
+            </a>
+            <a href="#tentang" class="block text-gray-300 hover:text-mako py-2 font-bold">
+                <span class="creative-only">// STATUS</span>
+                <span class="academic-only">STATUS</span>
+            </a>
+            <a href="#keahlian" class="block text-gray-300 hover:text-mako py-2 font-bold">
+                <span class="creative-only">// SKILLS</span>
+                <span class="academic-only">SKILLS</span>
+            </a>
+            <a href="#pengalaman" class="block text-gray-300 hover:text-mako py-2 font-bold">
+                <span class="creative-only">// QUESTS</span>
+                <span class="academic-only">WORK EXP</span>
+            </a>
+            <a href="#pendidikan" class="block text-gray-300 hover:text-mako py-2 font-bold">
+                <span class="creative-only">// INTEL</span>
+                <span class="academic-only">ACADEMIC RECORD</span>
+            </a>
+            
+            <!-- Mobile Mode Switcher -->
+            <div class="flex bg-gray-900 border border-mako/30 p-1 w-full justify-around items-center">
+                <button class="mode-toggle-btn px-4 py-1 text-black bg-mako font-bold" data-mode="creative">CREATIVE</button>
+                <button class="mode-toggle-btn px-4 py-1 text-gray-400 font-bold" data-mode="academic">ACADEMIC</button>
+            </div>
+            
+            <a href="#kontak" class="block bg-mako text-black text-center font-extrabold py-3">TRANSMIT SIGNAL</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen pt-24 flex items-center relative overflow-hidden bg-gradient-to-b from-darkBg via-[#081223] to-darkBg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+            <!-- Informasi Utama -->
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <div class="inline-flex items-center space-x-2 bg-mako/10 border border-mako/40 px-4 py-1.5 text-[11px] font-hud font-bold text-mako uppercase tracking-widest creative-only">
+                    <span class="w-2.5 h-2.5 bg-mako rounded-none animate-ping"></span>
+                    <span>LIFESTREAM ONLINE // READY</span>
+                </div>
+                
+                <div class="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 px-4 py-1.5 text-[11px] font-bold text-blue-600 uppercase tracking-widest academic-only rounded-full">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                    <span>ACTIVE RESEARCHER // SINTA VERIFIED</span>
+                </div>
+                
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white font-hud leading-none uppercase creative-only">
+                    WIRA <span class="text-transparent bg-clip-text bg-gradient-to-r from-mako to-emerald-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">MAHARDIKA PUTRA</span>
+                </h1>
+                
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight academic-only hero-name" style="color: white !important;">
+                    Wira Mahardika Putra, S.Ds, M.M.
+                </h1>
+                
+                <!-- Efek Teks Typewriter -->
+                <div class="h-10 flex items-center justify-center lg:justify-start creative-only">
+                    <p class="text-lg sm:text-xl font-hud text-hudBlue-DEFAULT font-bold tracking-widest uppercase flex items-center">
+                        <span class="mr-2 text-gray-500">//</span>
+                        <span id="typewriter" class="glow-cyan-text ml-2"></span><span class="cursor-blink glow-cyan-text">|</span>
+                    </p>
+                </div>
+                
+                <!-- Subtitle Academic Formal -->
+                <p class="text-lg font-bold text-blue-600 uppercase tracking-wider academic-only">
+                    Assistant Professor in Visual Communication Design
+                </p>
+                
+                <p class="text-gray-400 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 font-sans">
+                    Engineering virtual worlds through advanced interactive 3D modeling, high-impact visual storytelling, and pushing academic boundaries with global indexed multimedia research.
+                </p>
+                
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 creative-only">
+                    <a href="#pengalaman" class="ff-btn-slant bg-mako hover:bg-mako-light text-black font-hud font-extrabold text-[11px] tracking-widest px-8 py-4 transition-all duration-300 flex items-center space-x-3 shadow-mako-glow">
+                        <span>INITIATE QUESTS</span>
+                        <i class="fa-solid fa-gamepad animate-pulse"></i>
+                    </a>
+                    <button id="limit-break-btn" class="ff-btn-slant border border-mako text-mako hover:bg-mako/10 font-hud font-extrabold text-[11px] tracking-widest px-8 py-4 transition-all duration-300">
+                        ACTIVATE LIMIT BREAK
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 academic-only">
+                    <a href="#pendidikan" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm tracking-wider rounded-lg shadow-lg shadow-blue-500/20 transition-all duration-300">
+                        VIEW RESEARCH RECORD
+                    </a>
+                    <a href="#kontak" class="px-8 py-4 border border-blue-200 text-blue-600 hover:bg-blue-50 font-bold text-sm tracking-wider rounded-lg transition-all duration-300">
+                        CONTACT RESEARCHER
+                    </a>
+                </div>
+
+                <!-- Indikator Sinkronisasi (Creative Only) -->
+                <div class="grid grid-cols-3 gap-6 pt-10 border-t border-mako/20 max-w-lg mx-auto lg:mx-0 font-hud creative-only">
+                    <div class="border-l-2 border-mako pl-3">
+                        <div class="text-2xl font-extrabold text-white">LV. 99</div>
+                        <div class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider">RANK STATUS</div>
+                    </div>
+                    <div class="border-l-2 border-mako-light pl-3">
+                        <div class="text-2xl font-extrabold text-mako-light">50+</div>
+                        <div class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider">QUESTS CLEARED</div>
+                    </div>
+                    <div class="border-l-2 border-mako pl-3">
+                        <div class="text-2xl font-extrabold text-white">100%</div>
+                        <div class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider">SYNC RATE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Status Karakter Menu Rebirth / Panel Profil Akademis Formal -->
+            <div class="lg:col-span-5 flex justify-center reveal">
+                <!-- PANEL STATUS CREATIVE (FF7 Mode) -->
+                <div class="ff-panel w-full max-w-md p-6 border-2 border-mako/30 shadow-mako-glow relative overflow-hidden group creative-only">
+                    <div class="absolute -right-16 -top-16 w-32 h-32 bg-mako/10 rotate-45 pointer-events-none"></div>
+                    
+                    <div class="flex justify-between items-center border-b border-mako/40 pb-4 mb-4 font-hud">
+                        <span class="text-[11px] text-mako-light tracking-widest">// PARTY_MEMBER_01</span>
+                        <span class="text-[11px] text-white bg-mako/20 px-2 py-0.5 border border-mako/50">ACTIVE_FRONT</span>
+                    </div>
+
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="relative w-20 h-20 bg-gray-900 border border-mako/50 p-1">
+                            <div class="w-full h-full bg-gradient-to-b from-emerald-950 to-gray-900 flex items-center justify-center text-mako">
+                                <i class="fa-solid fa-user text-3xl animate-pulse"></i>
+                            </div>
+                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-mako"></div>
+                        </div>
+                        <div>
+                            <h3 class="font-hud text-lg font-black text-white tracking-wider">WIRA M.P.</h3>
+                            <p class="text-xs text-mako">CLASS: CREATIVE TECHNOMANCER</p>
+                            <p class="text-[11px] text-gray-400 font-sans">ID: 44-55566688833-99966688</p>
+                        </div>
+                    </div>
+
+                    <!-- Bilah Status HP/MP yang Diperbesar 200% dengan Font HUD -->
+                    <div class="space-y-4 font-hud">
+                        <!-- Bilah HP -->
+                        <div>
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-mako-light font-bold text-xs">HP</span>
+                                <span class="text-white text-2xl font-black tracking-wider">9999 / 9999</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-2 border border-mako/20">
+                                <div class="bg-gradient-to-r from-emerald-500 to-mako h-full shadow-[0_0_8px_#10b981]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bilah MP -->
+                        <div>
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-teal-400 font-bold text-xs">MP</span>
+                                <span class="text-white text-2xl font-black tracking-wider">999 / 999</span>
+                            </div>
+                            <div class="w-full bg-gray-950 h-2 border border-mako/20">
+                                <div class="bg-gradient-to-r from-teal-500 to-cyan-400 h-full shadow-[0_0_8px_rgba(34,211,238,0.7)]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bilah Limit Break -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-orange-400 font-bold animate-pulse">LIMIT BREAK</span>
+                                <span class="text-orange-400 text-[11px] tracking-widest" id="limit-text">READY</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-3 border border-orange-500/20 relative overflow-hidden">
+                                <div id="limit-bar" class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-full shadow-[0_0_12px_#f97316] transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matriks Atribut Karakter dengan Urutan & Desain Baru -->
+                    <div class="grid grid-cols-2 gap-4 border-t border-gray-800/60 pt-4 font-hud text-xs mt-6">
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">CRE</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(CREATIVITY)</div>
+                            </div>
+                            <div class="text-white text-base font-black">255</div>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">STR</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(STORYCRAFT)</div>
+                            </div>
+                            <div class="text-white text-base font-black">250</div>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">END</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(ENDURANCE)</div>
+                            </div>
+                            <div class="text-white text-base font-black">235</div>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">TEC</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(TECHNICAL)</div>
+                            </div>
+                            <div class="text-white text-base font-black">245</div>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">SPD</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(SPEED)</div>
+                            </div>
+                            <div class="text-white text-base font-black">250</div>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
+                            <div>
+                                <div class="text-white text-sm font-bold leading-none">RES</div>
+                                <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(RESEARCH)</div>
+                            </div>
+                            <div class="text-white text-base font-black">240</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL PROFIL AKADEMIS (Academic Mode murni) -->
+                <div class="ff-panel w-full max-w-md p-8 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-100 relative overflow-hidden academic-only">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+                        <span class="text-[11px] text-blue-600 font-bold tracking-wider">// CREDENTIAL_INDEX</span>
+                        <span class="text-[11px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full uppercase">ACTIVE_RESEARCHER</span>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="font-sans text-xl font-bold text-slate-800">WIRA MAHARDIKA PUTRA, S.Ds., M.M.</h3>
+                            <p class="text-sm text-blue-600 font-medium">Assistant Professor // NIDN Verified</p>
+                        </div>
+                        
+                        <div class="border-t border-slate-100 pt-4 space-y-3 font-sans text-sm">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold">// CURRENT TENURE APPOINTMENT</p>
+                                <p class="font-bold text-slate-700 mt-1">ASSISTANT PROFESSOR (ASISTEN AHLI) // UNIKOM</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold">// CORE FIELD</p>
+                                    <p class="font-bold text-slate-700 mt-1">VISUAL DESIGN</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold">// H-INDEX</p>
+                                    <p class="font-bold text-slate-700 mt-1">SINTA CERTIFIED</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-4">
+                            <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-2">// PEDAGOGICAL CAPACITIES</p>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 font-medium">TRI DHARMA</span>
+                                <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 font-medium">INSTRUCTIONAL DESIGN</span>
+                                <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 font-medium">SYLLABUS ARCHITECTURE</span>
+                            </div>
+                        </div>
+
+                        <a href="#kontak" class="w-full flex items-center justify-between p-3 bg-blue-600 text-white rounded-lg font-bold text-xs hover:bg-blue-700 transition-all shadow-md shadow-blue-500/10 mt-6">
+                            <span>REQUEST OFFICIAL CV DOCUMENT</span>
+                            <i class="fa-solid fa-file-arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Status & Profil -->
+    <section id="tentang" class="py-24 bg-gray-950 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Status Details Left -->
+                <div class="lg:col-span-5 space-y-6 reveal">
+                    <h2 class="text-xs font-hud font-bold tracking-widest text-mako uppercase creative-only">// ACCESSING_BIOS_INFO</h2>
+                    <h2 class="text-xs font-bold tracking-widest text-blue-600 uppercase academic-only">// ACADEMIC_PROFESSIONAL_STATEMENT</h2>
+                    
+                    <h3 class="text-3xl sm:text-4xl font-extrabold font-hud text-white mt-2 uppercase creative-only">Dedicating Creativity to Design & Research</h3>
+                    <h3 class="text-3xl font-extrabold text-slate-900 mt-2 academic-only">Synergy of Applied Graphic Design & Academic Research (Tri Dharma)</h3>
+                    
+                    <p class="text-gray-400 leading-relaxed font-sans text-base sm:text-lg">
+                        By blending professional expertise in 3D art, graphic design, and an academic approach as a researcher, I focus on delivering visually stunning assets built upon robust, research-backed methodologies.
+                    </p>
+                    <p class="text-gray-400 leading-relaxed font-sans text-base sm:text-lg">
+                        I thrive on merging rich visual storytelling with highly effective instructional design to create impactful educational or promotional experiences, serving both creative industries and academic sectors.
+                    </p>
+                
+                    <!-- Slanted Specs UI -->
+                    <div class="space-y-3 pt-2 font-hud text-base sm:text-lg">
+                        <div class="flex items-center space-x-3 bg-mako/5 border border-mako/20 p-3 creative-only">
+                            <i class="fa-solid fa-envelope text-mako text-lg sm:text-xl"></i>
+                            <span class="text-gray-300 font-sans text-base sm:text-lg">wiramahardikaputra@gmail.com</span>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-mako/5 border border-mako/20 p-3 creative-only">
+                            <i class="fa-brands fa-instagram text-mako text-lg sm:text-xl"></i>
+                            <span class="text-gray-300 font-sans text-base sm:text-lg">@wira_wimatra</span>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-mako/5 border border-mako/20 p-3 creative-only">
+                            <i class="fa-solid fa-location-dot text-mako text-lg sm:text-xl"></i>
+                            <span class="text-gray-300 font-sans text-base sm:text-lg">Indonesia</span>
+                        </div>
+
+                        <!-- Academic Contact Cards -->
+                        <div class="flex items-center space-x-3 bg-slate-50 border border-slate-200 p-3 rounded-lg academic-only">
+                            <i class="fa-solid fa-envelope text-blue-600 text-lg sm:text-xl"></i>
+                            <span class="text-slate-700 font-sans text-base sm:text-lg font-medium">wiramahardikaputra@gmail.com</span>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-slate-50 border border-slate-200 p-3 rounded-lg academic-only">
+                            <i class="fa-brands fa-instagram text-blue-600 text-lg sm:text-xl"></i>
+                            <span class="text-slate-700 font-sans text-base sm:text-lg font-medium">@wira_wimatra</span>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-slate-50 border border-slate-200 p-3 rounded-lg academic-only">
+                            <i class="fa-solid fa-location-dot text-blue-600 text-lg sm:text-xl"></i>
+                            <span class="text-slate-700 font-sans text-base sm:text-lg font-medium">Indonesia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tactical Grid Cards Right -->
+                <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Card 1 -->
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/70 hover:shadow-mako-glow hover:-translate-y-1 transition-all duration-300 group reveal">
+                        <div class="w-12 h-12 bg-mako/10 border border-mako/40 flex items-center justify-center text-mako mb-4 group-hover:scale-110 transition-transform creative-only">
+                            <i class="fa-solid fa-cube text-xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 rounded-xl academic-only">
+                            <i class="fa-solid fa-cube text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-hud font-bold text-white mb-2 uppercase creative-only">3D ART & MODELING</h4>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2 academic-only">3D Art & Virtual Modeling Studies</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed font-sans">
+                            Crafting premium 3D character models, 2D & 3D game assets, and interactive visual integration utilizing industry-standard software like Blender & Daz3D.
+                        </p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/70 hover:shadow-mako-glow hover:-translate-y-1 transition-all duration-300 group reveal" style="transition-delay: 100ms;">
+                        <div class="w-12 h-12 bg-mako/10 border border-mako/40 flex items-center justify-center text-mako mb-4 group-hover:scale-110 transition-transform creative-only">
+                            <i class="fa-solid fa-pen-nib text-xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 rounded-xl academic-only">
+                            <i class="fa-solid fa-pen-nib text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-hud font-bold text-white mb-2 uppercase creative-only">GRAPHIC DESIGN</h4>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2 academic-only">Applied Visual Communication</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed font-sans">
+                            Architecting dynamic visual branding, marketing materials, digital comics, and promotional assets with Adobe Creative Suite.
+                        </p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/70 hover:shadow-mako-glow hover:-translate-y-1 transition-all duration-300 group reveal" style="transition-delay: 200ms;">
+                        <div class="w-12 h-12 bg-mako/10 border border-mako/40 flex items-center justify-center text-mako mb-4 group-hover:scale-110 transition-transform creative-only">
+                            <i class="fa-solid fa-graduation-cap text-xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 rounded-xl academic-only">
+                            <i class="fa-solid fa-graduation-cap text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-hud font-bold text-white mb-2 uppercase creative-only">INSTRUCTIONAL DESIGN</h4>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2 academic-only">Instructional & Learning Design</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed font-sans">
+                            Experienced as Vice Principal, University Lecturer, and Assistant Professor delivering core curriculum designs and engaging instruction.
+                        </p>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/70 hover:shadow-mako-glow hover:-translate-y-1 transition-all duration-300 group reveal" style="transition-delay: 300ms;">
+                        <div class="w-12 h-12 bg-mako/10 border border-mako/40 flex items-center justify-center text-mako mb-4 group-hover:scale-110 transition-transform creative-only">
+                            <i class="fa-solid fa-vial text-xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 rounded-xl academic-only">
+                            <i class="fa-solid fa-vial text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-hud font-bold text-white mb-2 uppercase creative-only">ACADEMIC RESEARCH</h4>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2 academic-only">Scientific Research & Publications</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed font-sans">
+                            Publishing highly cited papers in SINTA and Thomson Reuters indexed scientific journals to foster the progression of visual arts education.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bagian Bilah Keterampilan (Materia Glow Dashboard) -->
+    <section id="keahlian" class="py-24 bg-darkBg relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-xs font-hud font-bold tracking-widest text-mako uppercase creative-only">// LOAD_SKILLS_MANIFEST</h2>
+                <h2 class="text-xs font-bold tracking-widest text-blue-600 uppercase academic-only">// COMPETENCY_RECAPITULATION</h2>
+                
+                <h3 class="text-3xl sm:text-4xl font-extrabold font-hud text-white mt-2 uppercase creative-only">Professional Skills & Tool Mastery</h3>
+                <h3 class="text-3xl font-extrabold text-slate-900 mt-2 academic-only">Professional Skills & Tool Mastery</h3>
+                
+                <p class="text-gray-400 mt-4 font-sans">
+                    A combination of advanced digital design skills, 3D modeling pipelines, academic research strategies, and bilingual communication proficiency.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Red Materia / Blue Block: Creative & Design -->
+                <div class="ff-panel p-5 border-t-2 border-red-500/70 reveal">
+                    <h3 class="text-red-500 mb-6 font-bold text-xs uppercase tracking-[0.2em] border-b border-red-950 pb-2 flex items-center creative-only">
+                        <span class="materia-orb text-red-500 mr-2.5"></span>
+                        <span>// CREATIVE_DESIGN</span>
+                    </h3>
+                    <h3 class="text-blue-600 mb-6 font-bold text-sm uppercase tracking-wide border-b border-slate-100 pb-2 flex items-center academic-only">
+                        <i class="fa-solid fa-palette mr-2"></i>
+                        <span>CREATIVE & DESIGN</span>
+                    </h3>
+                    <div id="design-container" class="space-y-3.5"></div>
+                </div>
+
+                <!-- Green Materia / Indigo Block: Utility & Support -->
+                <div class="ff-panel p-5 border-t-2 border-emerald-500/70 reveal" style="transition-delay: 150ms;">
+                    <h3 class="text-emerald-400 mb-6 font-bold text-xs uppercase tracking-[0.2em] border-b border-emerald-950 pb-2 flex items-center creative-only">
+                        <span class="materia-orb text-emerald-500 mr-2.5"></span>
+                        <span>// UTILITY_SUPPORT</span>
+                    </h3>
+                    <h3 class="text-indigo-600 mb-6 font-bold text-sm uppercase tracking-wide border-b border-slate-100 pb-2 flex items-center academic-only">
+                        <i class="fa-solid fa-sliders mr-2"></i>
+                        <span>UTILITY & SUPPORT</span>
+                    </h3>
+                    <div id="utility-container" class="space-y-3.5"></div>
+                </div>
+
+                <!-- Yellow Materia / Teal Block: Communication Skills -->
+                <div class="ff-panel p-5 border-t-2 border-yellow-500/70 reveal" style="transition-delay: 300ms;">
+                    <h3 class="text-yellow-500 mb-6 font-bold text-xs uppercase tracking-[0.2em] border-b border-yellow-950 pb-2 flex items-center creative-only">
+                        <span class="materia-orb text-yellow-500 mr-2.5"></span>
+                        <span>// COMMUNICATION</span>
+                    </h3>
+                    <h3 class="text-teal-600 mb-6 font-bold text-sm uppercase tracking-wide border-b border-slate-100 pb-2 flex items-center academic-only">
+                        <i class="fa-solid fa-globe mr-2"></i>
+                        <span>COMMUNICATION</span>
+                    </h3>
+                    <div id="comm-container" class="space-y-3.5"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quests Timeline Section -->
+    <section id="pengalaman" class="py-24 bg-gray-950 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-xs font-hud font-bold tracking-widest text-mako uppercase creative-only">// MISSION_QUEST_LOG</h2>
+                <h2 class="text-xs font-bold tracking-widest text-blue-600 uppercase academic-only">// PROFESSIONAL_TRACK_RECORD</h2>
+                
+                <h3 class="text-3xl sm:text-4xl font-extrabold font-hud text-white mt-2 uppercase creative-only">Work Experience & Cleared Quests</h3>
+                <h3 class="text-3xl font-extrabold text-slate-900 mt-2 academic-only">Professional Work Experience & Career Portfolio</h3>
+                
+                <p class="text-gray-400 mt-4 font-sans">
+                    Track record of professional campaigns successfully cleared in both creative industries and academic sectors.
+                </p>
+            </div>
+
+            <!-- Jalur Linimasa Rapi & Lebar Gutter Terukur (md:ml-48) mencegah tumpang-tindih -->
+            <div class="relative border-l-2 border-mako/30 ml-4 md:ml-48 space-y-12">
+                
+                <!-- Mission 1: Teacher (SMK Pesat IT XPRO) -->
+                <div class="relative pl-6 md:pl-10 reveal">
+                    <!-- Date block left offset fits perfectly with line space -->
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2021 - PRESENT</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">SMK PESAT IT XPRO</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow-[0_0_8px_#10b981]"></span>
+                    
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300">
+                        <span class="inline-block md:hidden text-xs font-hud font-extrabold text-mako tracking-widest mb-2">2021 - PRESENT | SMK PESAT IT XPRO</span>
+                        
+                        <!-- Header Baris Quest Teratur Rata Kanan Kiri -->
+                        <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                            <div>
+                                <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">Teacher of Visual Communication Design Programme</h4>
+                            </div>
+                            <!-- Box Lencana Terbuka, Rapi & Rata Kanan -->
+                            <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="diff-badge-expert"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> EXPERT</span>
+                                    <span class="rank-badge-ss"><i class="fa-solid fa-crown mr-1.5"></i> SS // LEGENDARY</span>
+                                </div>
+                                <div class="faction-sys-badge">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    <span>FACTION: ACADEMIC UNION</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <ul class="mt-4 space-y-2.5 text-gray-400 text-sm font-sans">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Delivers engaging and effective classroom instruction in visual arts and design.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Develops creative educational plans incorporating modern 3D and graphic design workflows.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Assesses student performance and provides constructive, industry-aligned design feedback.</span>
+                            </li>
+                        </ul>
+
+                        <!-- Reward Taktis Bawah -->
+                        <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                <p class="text-sm font-bold text-mako mt-1">+75,000 EXP // +1,500 AP</p>
+                            </div>
+                            <span class="text-xs font-bold text-orange-400 animate-pulse bg-orange-950/20 px-3 py-1 border border-orange-500/40 block mt-2 w-fit">Active Quest // Primary</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mission 2: Vice Principal (SMK Pesat IT XPRO) -->
+                <div class="relative pl-6 md:pl-10 reveal">
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2022 - 2023</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">SMK PESAT IT XPRO</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow"></span>
+                    
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 mythic-card-border creative-only shine-effect">
+                        <span class="inline-block md:hidden text-xs font-hud font-extrabold text-mako tracking-widest mb-2">2022 - 2023 | SMK PESAT IT XPRO</span>
+                        
+                        <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                            <div>
+                                <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">VICE PRINCIPAL OF INDUSTRIAL RELATIONS & PR</h4>
+                            </div>
+                            <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="diff-badge-extreme"><i class="fa-solid fa-skull mr-1.5"></i> EXTREME</span>
+                                    <span class="rank-badge-sss"><i class="fa-solid fa-snowflake mr-1.5"></i> SSS // MYTHIC</span>
+                                </div>
+                                <div class="faction-sys-badge">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    <span>FACTION: ACADEMIC UNION</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <ul class="mt-4 space-y-2.5 text-gray-400 text-sm font-sans">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Manages media relations by building and nurturing valuable partnerships with corporate and industry networks.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Drafts and disseminates targeted communications including newsletters, brochures, and dynamic web content.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Oversees institutional social media accounts, driving user engagement and answering public inquiries.</span>
+                            </li>
+                        </ul>
+
+                        <!-- Reward Taktis Bawah -->
+                        <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                <p class="text-sm font-bold text-mako mt-1">+99,999 EXP // +3,000 AP</p>
+                            </div>
+                            <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Clean Academic Card (Academic Mode Only) -->
+                    <div class="ff-panel p-6 border border-slate-200 bg-white transition-all duration-300 academic-only shadow-sm">
+                        <span class="inline-block md:hidden text-xs font-bold text-slate-500 tracking-wider mb-2">2022 - 2023 | SMK PESAT IT XPRO</span>
+                        <div class="w-full flex justify-between items-start pb-4 border-b border-slate-100">
+                            <h4 class="text-xl font-bold text-slate-800 tracking-wide">VICE PRINCIPAL OF INDUSTRIAL RELATIONS & PR</h4>
+                        </div>
+                        <ul class="mt-4 space-y-2.5 text-slate-600 text-sm font-sans">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-1 mr-3 flex-shrink-0 text-xs"></i>
+                                <span>Manages media relations by building and nurturing valuable partnerships with corporate and industry networks.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-1 mr-3 flex-shrink-0 text-xs"></i>
+                                <span>Drafts and disseminates targeted communications including newsletters, brochures, and dynamic web content.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-1 mr-3 flex-shrink-0 text-xs"></i>
+                                <span>Oversees institutional social media accounts, driving user engagement and answering public inquiries.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Mission 3: Graphic Designer & 3D Artist (Wimatra Studio) (CREATIVE ONLY) -->
+                <div class="relative pl-6 md:pl-10 reveal creative-only">
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2019 - 2021</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">WIMATRA STUDIO</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow"></span>
+                    
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 mythic-card-border creative-only shine-effect">
+                        <span class="inline-block md:hidden text-xs font-hud font-extrabold text-mako tracking-widest mb-2">2019 - 2021 | WIMATRA STUDIO</span>
+                        
+                        <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                            <div>
+                                <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">GRAPHIC DESIGNER & 3D ARTIST</h4>
+                            </div>
+                            <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="diff-badge-expert"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> EXPERT</span>
+                                    <span class="rank-badge-sss"><i class="fa-solid fa-snowflake mr-1.5"></i> SSS // MYTHIC</span>
+                                </div>
+                                <div class="faction-sys-badge">
+                                    <i class="fa-solid fa-palette"></i>
+                                    <span>FACTION: CREATIVE EMPIRE</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <ul class="mt-4 space-y-2.5 text-gray-400 text-sm font-sans">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Created visually compelling brand architectures, digital campaign assets, and high-res print collateral.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Delivered high-quality 3D models, character designs, and promotional illustrations to match strict client requirements.</span>
+                            </li>
+                        </ul>
+
+                        <!-- Reward Taktis Bawah -->
+                        <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                <p class="text-sm font-bold text-mako mt-1">+85,000 EXP // +2,000 AP</p>
+                            </div>
+                            <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mission 4: UNIKOM academic segments (Satu Timeline, Dua Box Terpisah) -->
+                <div class="relative pl-6 md:pl-10 reveal">
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2010 - 2019</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">UNIKOM INDONESIA</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow"></span>
+                    
+                    <div class="space-y-6">
+                        <!-- BOX ATAS: Assistant Professor (Asisten Ahli) -->
+                        <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 mythic-card-border creative-only shine-effect">
+                            <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                                <div>
+                                    <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">ASSISTANT PROFESSOR (ASISTEN AHLI)</h4>
+                                </div>
+                                <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                    <div class="flex flex-wrap gap-2 items-center">
+                                        <span class="diff-badge-extreme"><i class="fa-solid fa-skull mr-1.5"></i> EXTREME</span>
+                                        <span class="rank-badge-sss"><i class="fa-solid fa-snowflake mr-1.5"></i> SSS // MYTHIC</span>
+                                    </div>
+                                    <div class="faction-sys-badge">
+                                        <i class="fa-solid fa-vial"></i>
+                                        <span>FACTION: SCIENTIFIC ALLIANCE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-mako mt-3 italic font-hud">&gt; Passed national academic tenure evaluation by RISTEKDIKTI in 2015.</p>
+                            <p class="text-sm text-gray-400 mt-3 font-sans">Responsibility: Leading visual design educational frameworks, planning academic curricula, and publishing research in accredited SINTA indexes.</p>
+
+                            <!-- Reward Taktis Bawah -->
+                            <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                                <div>
+                                    <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                    <p class="text-sm font-bold text-mako mt-1">+95,000 EXP // +2,500 AP</p>
+                                </div>
+                                <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                            </div>
+                        </div>
+
+                        <!-- Academic Box 1 (Academic Mode Only) -->
+                        <div class="ff-panel p-6 border border-slate-200 bg-white transition-all duration-300 academic-only shadow-sm">
+                            <span class="inline-block md:hidden text-xs font-bold text-slate-500 tracking-wider mb-2">2010 - 2019 | UNIKOM INDONESIA</span>
+                            <div class="w-full flex justify-between items-start pb-4 border-b border-slate-100">
+                                <h4 class="text-xl font-bold text-slate-800 tracking-wide">ASSISTANT PROFESSOR (ASISTEN AHLI)</h4>
+                            </div>
+                            <p class="text-xs text-blue-600 mt-3 font-medium">&gt; Passed national academic tenure evaluation by RISTEKDIKTI in 2015.</p>
+                            <p class="text-sm text-slate-600 mt-3 font-sans">Responsibility: Leading visual design educational frameworks, planning academic curricula, and publishing research in accredited SINTA indexes.</p>
+                        </div>
+
+                        <!-- BOX BAWAH: University Lecturer -->
+                        <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 creative-only">
+                            <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                                <div>
+                                    <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">UNIVERSITY LECTURER</h4>
+                                </div>
+                                <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                    <div class="flex flex-wrap gap-2 items-center">
+                                        <span class="diff-badge-expert"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> EXPERT</span>
+                                        <span class="rank-badge-ss"><i class="fa-solid fa-crown mr-1.5"></i> SS // LEGENDARY</span>
+                                    </div>
+                                    <div class="faction-sys-badge">
+                                        <i class="fa-solid fa-vial"></i>
+                                        <span>FACTION: SCIENTIFIC ALLIANCE</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <h5 class="text-md font-hud font-bold text-mako-light mb-2">&gt;_ THREE PILLARS (TRI DHARMA PERGURUAN TINGGI)</h5>
+                                <ul class="space-y-3 text-gray-400 text-sm font-sans">
+                                    <li class="flex items-start">
+                                        <span class="font-hud font-bold text-mako mr-3 bg-mako/10 px-2 py-0.5 text-xs">01</span>
+                                        <span><strong>Education:</strong> Delivered highly engaging lectures, led small-group tutorial workshops, and evaluated student designs.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="font-hud font-bold text-mako mr-3 bg-mako/10 px-2 py-0.5 text-xs">02</span>
+                                        <span><strong>Research:</strong> Led academic investigations into visual arts methodologies, publishing results in national SINTA-ranked and international journals.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="font-hud font-bold text-mako mr-3 bg-mako/10 px-2 py-0.5 text-xs">03</span>
+                                        <span><strong>Community Service:</strong> Headed public seminars, applying technical graphic skills to help local communities grow digital businesses.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Reward Taktis Bawah -->
+                            <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                                <div>
+                                    <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                    <p class="text-sm font-bold text-mako mt-1">+70,000 EXP // +550 AP</p>
+                                </div>
+                                <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                            </div>
+                        </div>
+
+                        <!-- Academic Box 2 (Academic Mode Only) -->
+                        <div class="ff-panel p-6 border border-slate-200 bg-white transition-all duration-300 academic-only shadow-sm">
+                            <div class="w-full flex justify-between items-start pb-4 border-b border-slate-100">
+                                <h4 class="text-xl font-bold text-slate-800 tracking-wide">UNIVERSITY LECTURER</h4>
+                            </div>
+                            <div class="mt-6">
+                                <h5 class="text-md font-bold text-slate-800 mb-2">THREE PILLARS (TRI DHARMA PERGURUAN TINGGI)</h5>
+                                <ul class="space-y-3 text-slate-600 text-sm font-sans">
+                                    <li class="flex items-start">
+                                        <span class="font-bold text-blue-600 mr-3 bg-blue-50 px-2 py-0.5 text-xs">01</span>
+                                        <span><strong>Education:</strong> Delivered highly engaging lectures, led small-group tutorial workshops, and evaluated student designs.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="font-bold text-blue-600 mr-3 bg-blue-50 px-2 py-0.5 text-xs">02</span>
+                                        <span><strong>Research:</strong> Led academic investigations into visual arts methodologies, publishing results in national SINTA-ranked and international journals.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="font-bold text-blue-600 mr-3 bg-blue-50 px-2 py-0.5 text-xs">03</span>
+                                        <span><strong>Community Service:</strong> Headed public seminars, applying technical graphic skills to help local communities grow digital businesses.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Mission 5: Remote Game Assets Creator (Capsule LLC) (CREATIVE ONLY) -->
+                <div class="relative pl-6 md:pl-10 reveal creative-only">
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2014 - 2015</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">CAPSULE LLC, USA</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow"></span>
+                    
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 creative-only">
+                        <span class="inline-block md:hidden text-xs font-hud font-extrabold text-mako tracking-widest mb-2">2014 - 2015 | CAPSULE LLC, USA</span>
+                        
+                        <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                            <div>
+                                <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">REMOTE GAME ASSETS CREATOR</h4>
+                            </div>
+                            <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="diff-badge-expert"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> EXPERT</span>
+                                    <span class="rank-badge-ss"><i class="fa-solid fa-crown mr-1.5"></i> SS // LEGENDARY</span>
+                                </div>
+                                <div class="faction-sys-badge">
+                                    <i class="fa-solid fa-gamepad"></i>
+                                    <span>FACTION: ENTERTAINMENT FEDERATION</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <ul class="mt-4 space-y-2.5 text-gray-400 text-sm font-sans">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Illustrator: Produced imaginative and highly polished conceptual illustrations for game builds in active development.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Comic Artist: Crafted engaging visual narratives and graphic stories to introduce the game IP to international audiences.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-caret-right text-mako mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Game Assets: Rendered 2D game asset variations, background environmental designs, and items.</span>
+                            </li>
+                        </ul>
+
+                        <!-- Reward Taktis Bawah -->
+                        <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                <p class="text-sm font-bold text-mako mt-1">+80,000 EXP // +1,200 AP</p>
+                            </div>
+                            <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mission 6: PT Dhikr Character Illustrator (CREATIVE ONLY) -->
+                <div class="relative pl-6 md:pl-10 reveal creative-only">
+                    <span class="hidden md:flex absolute -left-[168px] top-1 text-right text-xs font-hud font-extrabold text-mako flex-col w-36">
+                        <span>2013</span>
+                        <span class="text-[11px] text-gray-500 mt-1 uppercase font-sans">DHIKR CLOTHES</span>
+                    </span>
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-mako transform rotate-45 border-2 border-darkBg shadow"></span>
+                    
+                    <div class="ff-panel p-6 border border-mako/20 hover:border-mako/50 transition-all duration-300 creative-only">
+                        <span class="inline-block md:hidden text-xs font-hud font-extrabold text-mako tracking-widest mb-2">2013 | PT DHIKR KIDS CLOTHES</span>
+                        
+                        <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-800/60 pb-4">
+                            <div>
+                                <h4 class="text-xl font-hud font-bold text-white uppercase tracking-wide">FREELANCE CHARACTER ILLUSTRATOR</h4>
+                            </div>
+                            <div class="flex flex-col items-start lg:items-end gap-2 flex-shrink-0 creative-only">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="diff-badge-hard"><i class="fa-solid fa-shield mr-1.5"></i> HARD</span>
+                                    <span class="rank-badge-s"><i class="fa-solid fa-gem mr-1.5"></i> S // EPIC</span>
+                                </div>
+                                <div class="faction-sys-badge">
+                                    <i class="fa-solid fa-shirt"></i>
+                                    <span>FACTION: APPAREL CONSORTIUM</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-sm text-gray-400 mt-3 leading-relaxed font-sans">
+                            Drafted, colored, and designed friendly kid-focused characters and digital illustrations matching the clothing brand's identity guidelines.
+                        </p>
+
+                        <!-- Reward Taktis Bawah -->
+                        <div class="mt-6 pt-4 border-t border-gray-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-hud w-full creative-only">
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase tracking-widest">MISSION_REWARDS_SYNCED</p>
+                                <p class="text-sm font-bold text-mako mt-1">+60,000 EXP // +800 AP</p>
+                            </div>
+                            <span class="text-xs font-bold text-teal-400 bg-teal-950/20 px-4 py-1 border border-teal-500/40 uppercase block mt-2 w-fit">CLEARED</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Pendidikan (Intel Archives) -->
+    <section id="pendidikan" class="py-24 bg-darkBg relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-xs font-hud font-bold tracking-widest text-mako uppercase creative-only">// ACADEMIC_ARCHIVES</h2>
+                <h2 class="text-xs font-bold tracking-widest text-blue-600 uppercase academic-only">// HIGHER_EDUCATION_DATABASE</h2>
+                
+                <h3 class="text-3xl sm:text-4xl font-extrabold font-hud text-white mt-2 uppercase creative-only">Higher Education Database</h3>
+                <h3 class="text-3xl font-extrabold text-slate-900 mt-2 academic-only">Educational Credentials & Study History</h3>
+                
+                <p class="text-gray-400 mt-4 font-sans">
+                    Formal qualifications that shape my analytical methodology and critical-thinking capacities.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Academic Card 1 (Silver & Sweep LTR Sesuai Permintaan) -->
+                <div class="ff-panel p-8 border border-mako/20 hover:border-mako/60 transition-all duration-300 relative overflow-hidden group reveal silver-card-border silver-shine">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-slate-400/5 rounded-bl-full transition-all group-hover:bg-slate-400/10"></div>
+                    <div class="flex items-start space-x-4 relative z-10">
+                        <!-- Dual Faction Icons for Perfect Theme Sync -->
+                        <div class="w-12 h-12 bg-slate-800/80 border border-slate-400/50 flex items-center justify-center text-slate-100 rounded-lg flex-shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.25)] creative-only">
+                            <i class="fa-solid fa-user-tie text-2xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 rounded-lg flex-shrink-0 academic-only">
+                            <i class="fa-solid fa-user-tie text-2xl"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-hud font-bold text-slate-300 creative-only">GRADUATED // 2012 - 2014</span>
+                            <span class="text-xs font-bold text-slate-500 academic-only">GRADUATED // 2012 - 2014</span>
+                            <h4 class="text-lg font-hud font-bold text-white mt-1 uppercase creative-only">MASTER OF MANAGEMENT</h4>
+                            <h4 class="text-lg font-bold text-slate-800 mt-1 academic-only">MASTER OF MANAGEMENT</h4>
+                            <p class="text-sm text-gray-400 mt-1 font-sans creative-only">Universitas Komputer Indonesia (UNIKOM)</p>
+                            <p class="text-sm text-slate-600 mt-1 font-sans academic-only">Universitas Komputer Indonesia (UNIKOM)</p>
+                            <p class="text-xs text-slate-400 mt-4 leading-relaxed font-sans creative-only">Focused on strategic management, team leadership, institutional PR communications, and industrial relations strategies.</p>
+                            <p class="text-xs text-slate-500 mt-4 leading-relaxed font-sans academic-only">Focused on strategic management, team leadership, institutional public relations, and industrial relations strategies.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Card 2 (Bronze & Sweep LTR Sesuai Permintaan) -->
+                <div class="ff-panel p-8 border border-mako/20 hover:border-mako/60 transition-all duration-300 relative overflow-hidden group reveal bronze-card-border bronze-shine" style="transition-delay: 150ms;">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-bl-full transition-all group-hover:bg-amber-500/10"></div>
+                    <div class="flex items-start space-x-4 relative z-10">
+                        <!-- Dual Faction Icons for Perfect Theme Sync -->
+                        <div class="w-12 h-12 bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-amber-300 rounded-lg flex-shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.25)] creative-only">
+                            <i class="fa-solid fa-palette text-2xl"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-50 border border-amber-300 flex items-center justify-center text-amber-700 rounded-lg flex-shrink-0 academic-only">
+                            <i class="fa-solid fa-palette text-2xl"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-hud font-bold text-amber-400 creative-only">GRADUATED // 2006 - 2010</span>
+                            <span class="text-xs font-bold text-amber-700 academic-only">GRADUATED // 2006 - 2010</span>
+                            <h4 class="text-lg font-hud font-bold text-white mt-1 uppercase creative-only">BACHELOR OF VISUAL COMMUNICATION DESIGN (S.Ds)</h4>
+                            <h4 class="text-lg font-bold text-slate-800 mt-1 academic-only">BACHELOR OF VISUAL COMMUNICATION DESIGN (S.Ds)</h4>
+                            <p class="text-sm text-gray-400 mt-1 font-sans creative-only">Universitas Komputer Indonesia (UNIKOM)</p>
+                            <p class="text-sm text-slate-600 mt-1 font-sans academic-only">Universitas Komputer Indonesia (UNIKOM)</p>
+                            <p class="text-xs text-slate-400 mt-4 leading-relaxed font-sans creative-only">In-depth studies in fine arts, advanced digital illustration, storyboarding, graphic design theory, and professional creative software workflows.</p>
+                            <p class="text-xs text-slate-500 mt-4 leading-relaxed font-sans academic-only">In-depth studies in fine arts, advanced digital illustration, storyboarding, visual communication theory, and professional creative software workflows.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACADEMIC ONLY SECTION: Direktori Publikasi Jurnal Ilmiah SINTA -->
+            <div class="mt-16 border-t border-slate-200 pt-16 academic-only">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <h4 class="text-xs font-bold text-blue-600 uppercase tracking-widest">// REPOSITORY_INDEX</h4>
+                    <h5 class="text-2xl font-bold text-slate-800 mt-1">Repository of SINTA-Indexed Scientific Journal Publications</h5>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
+                        <span class="text-[11px] bg-blue-50 text-blue-600 border border-blue-100 font-bold px-3 py-1 rounded-full">SINTA ACCREDITED</span>
+                        <h6 class="font-bold text-slate-800 text-lg mt-3">Aesthetic Evaluation of 3D Characters in Visual Communication Educational Animation</h6>
+                        <p class="text-xs text-slate-500 mt-1">Journal of Applied Visual Communication Design // ISSN: 2301-9271</p>
+                        <p class="text-sm text-slate-600 mt-4 leading-relaxed">Structured academic research on optimizing 3D Blender asset architecture to enhance student learning efficiency within vocational programs.</p>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
+                        <span class="text-[11px] bg-blue-50 text-blue-600 border border-blue-100 font-bold px-3 py-1 rounded-full">SINTA ACCREDITED</span>
+                        <h6 class="font-bold text-slate-800 text-lg mt-3">Analysis of Public Relations Strategies in Industry-Based Secondary Educational Institutions</h6>
+                        <p class="text-xs text-slate-500 mt-1">Higher Education PR Studies // Vol. 14, No. 3</p>
+                        <p class="text-sm text-slate-600 mt-4 leading-relaxed">In-depth analysis of Public Relations' strategic role and structural vocational integration with corporate partners to accelerate graduate employability.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transmit Section (Contact) -->
+    <section id="kontak" class="py-24 bg-darkBg relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- Kontak Kiri: Neural Uplink Terminal -->
+                <div class="lg:col-span-5 space-y-8 reveal">
+                    <div>
+                        <h2 class="text-xs font-hud font-bold tracking-widest text-mako uppercase creative-only">// SECURE_TRANSMISSION</h2>
+                        <h2 class="text-xs font-bold tracking-widest text-blue-600 uppercase academic-only">// CORRESPONDENCE_FORM</h2>
+                        
+                        <h3 class="text-3xl sm:text-4xl font-extrabold font-hud text-white mt-2 uppercase creative-only">Transmit Message Signal</h3>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mt-2 academic-only">Contact Academic Researcher Terminal</h3>
+                        
+                        <p class="text-gray-400 mt-4 leading-relaxed font-sans">
+                            Need coordination for a new 3D art design, visual curriculum instructional setup, or joint academic research campaigns? Connect your terminal link below.
+                        </p>
+                    </div>
+
+                    <!-- "Final Boss" Hologram Console Deck (Creative Only) -->
+                    <div class="ff-panel p-6 border-2 border-mako/30 bg-[#060c18] space-y-4 font-hud text-[11px] relative overflow-hidden creative-only">
+                        <!-- Background Radar Sweeping Grid -->
+                        <div class="absolute right-4 bottom-4 w-32 h-32 opacity-20 pointer-events-none border border-mako/30 rounded-full">
+                            <div class="w-full h-full radar-sweep-element bg-gradient-to-tr from-transparent via-mako/30 to-transparent"></div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-b border-mako/20 pb-3">
+                            <span class="text-mako font-bold animate-pulse">&gt; NEURAL_UPLINK_TERMINAL</span>
+                            <span class="bg-emerald-950 text-mako border border-mako/40 px-2 py-0.5 text-[10px]">99.8% STABLE</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between"><span>AVAILABILITY_STATUS</span><span class="text-orange-400">STANDBY_DEPLOYMENT</span></div>
+                            <div class="flex justify-between"><span>CONNECTION_GATEWAY</span><span class="text-cyan-400">SECURE_SSL_SYNC</span></div>
+                            <div class="flex justify-between"><span>ACTIVE_NIDN_VERIFY</span><span class="text-white">0408-1215-01</span></div>
+                        </div>
+
+                        <!-- Mini Strength Meter -->
+                        <div class="pt-2 border-t border-gray-800/60">
+                            <div class="flex justify-between mb-1"><span>SIGNAL_STRENGTH</span><span>98.2% (MAKO_CHIMES)</span></div>
+                            <div class="w-full bg-gray-950 h-1.5 border border-mako/10">
+                                <div class="bg-mako h-full w-[98%]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 font-hud text-xs">
+                        <div class="flex items-center space-x-4 bg-[#0a1428]/85 border border-mako/20 p-4 contact-card">
+                            <div class="w-12 h-12 bg-mako/10 flex items-center justify-center text-mako border border-mako/35 flex-shrink-0 contact-icon">
+                                <i class="fa-solid fa-envelope text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-[11px] font-bold text-gray-400 uppercase">SIGNAL_ADDR</h4>
+                                <p class="text-sm font-bold text-white mt-0.5 font-sans contact-text">wiramahardikaputra@gmail.com</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-4 bg-[#0a1428]/85 border border-mako/20 p-4 contact-card">
+                            <div class="w-12 h-12 bg-mako/10 flex items-center justify-center text-mako border border-mako/35 flex-shrink-0 contact-icon">
+                                <i class="fa-brands fa-instagram text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-[11px] font-bold text-gray-400 uppercase">SECURE_IG</h4>
+                                <p class="text-sm font-bold text-white mt-0.5 font-sans contact-text">@wira_wimatra</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-4 bg-[#0a1428]/85 border border-mako/20 p-4 contact-card">
+                            <div class="w-12 h-12 bg-mako/10 flex items-center justify-center text-mako border border-mako/35 flex-shrink-0 contact-icon">
+                                <i class="fa-solid fa-earth-asia text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-[11px] font-bold text-gray-400 uppercase">LOCATION_ZONE</h4>
+                                <p class="text-sm font-bold text-white mt-0.5 font-sans contact-text">Indonesia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form Right (Shinra HUD terminal theme) -->
+                <div class="lg:col-span-7 ff-panel p-8 border-2 border-mako/20 relative reveal" style="transition-delay: 150ms">
+                    <div id="form-message" class="hidden mb-6 p-4 rounded-none text-xs font-hud font-semibold"></div>
+
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-[11px] font-hud font-bold text-gray-400 uppercase tracking-widest mb-2">// USER_NAME</label>
+                                <input type="text" id="name" required class="w-full bg-[#040811]/90 border border-mako/30 rounded-none px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-mako focus:shadow-mako-glow transition-all" placeholder="YOUR IDENTIFICATION">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-[11px] font-hud font-bold text-gray-400 uppercase tracking-widest mb-2">// COMM_MAIL</label>
+                                <input type="email" id="email" required class="w-full bg-[#040811]/90 border border-mako/30 rounded-none px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-mako focus:shadow-mako-glow transition-all" placeholder="EMAIL ADDRESS">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="subject" class="block text-[11px] font-hud font-bold text-gray-400 uppercase tracking-widest mb-2">// SUBJECT_HEADER</label>
+                            <input type="text" id="subject" required class="w-full bg-[#040811]/90 border border-mako/30 rounded-none px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-mako focus:shadow-mako-glow transition-all" placeholder="COORDINATION SUBJECT SIGNAL">
+                        </div>
+
+                        <div>
+                            <label for="message" class="block text-[11px] font-hud font-bold text-gray-400 uppercase tracking-widest mb-2">// CORPUS_MESSAGE</label>
+                            <textarea id="message" rows="5" required class="w-full bg-[#040811]/90 border border-mako/30 rounded-none px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-mako focus:shadow-mako-glow transition-all resize-none" placeholder="Elaborate transmission contents here..."></textarea>
+                        </div>
+
+                        <button type="submit" class="ff-btn-slant w-full bg-mako hover:bg-mako-light text-black font-hud font-extrabold tracking-widest py-4 transition-all shadow-lg hover:shadow-mako-glow flex items-center justify-center space-x-3">
+                            <span>TRANSMIT MESSAGE SIGNAL</span>
+                            <i class="fa-solid fa-paper-plane animate-pulse"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer HUD -->
+    <footer class="bg-gray-950 border-t border-mako/20 py-12 text-center text-gray-500 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <!-- Dynamic Footer Logo Explicitly Kept in Orbitron -->
+            <div class="font-hud text-xl font-black tracking-widest text-white creative-only">
+                SYSTEM_<span class="text-mako">WIRA</span>
+            </div>
+            <div class="font-hud text-xl font-black tracking-widest text-white academic-only">
+                SYSTEM_<span class="text-blue-500">WIRA</span>
+            </div>
+            
+            <p class="max-w-md mx-auto text-xs text-gray-400 tracking-wider font-sans">
+                Thank you for authorizing encrypted synchronization of my visual terminal portfolio. May the Lifestream flow with you.
+            </p>
+            <div class="border-t border-gray-900 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] tracking-widest space-y-4 sm:space-y-0">
+                <p class="font-hud">&copy; 2026 WIRA MAHARDIKA PUTRA. ALL SYSTEMS NOMINAL.</p>
+                <div class="flex space-x-6 text-gray-400 font-hud">
+                    <a href="#home" class="hover:text-mako">// BOOT</a>
+                    <a href="#tentang" class="hover:text-mako">// STATUS</a>
+                    <a href="#pengalaman" class="hover:text-mako">// MISSION</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logika Interaktivitas Dasar Halaman -->
+    <script>
+        // Data Kompetensi / Skills (Materia Dashboard)
+        const skills = {
+            design: [
+                { name: "3D Blender", val: 90, materia: "materia-red" },
+                { name: "DAZ 3D", val: 85, materia: "materia-red" },
+                { name: "Adobe Photoshop", val: 95, materia: "materia-red" },
+                { name: "Adobe Illustrator", val: 90, materia: "materia-red" },
+                { name: "Adobe After Effect", val: 85, materia: "materia-red" },
+                { name: "Adobe Premiere", val: 85, materia: "materia-red" },
+                { name: "Figma", val: 90, materia: "materia-red" },
+                { name: "Coohom", val: 85, materia: "materia-red" },
+                { name: "D5", val: 80, materia: "materia-red" },
+                { name: "Capcut", val: 90, materia: "materia-red" }
+            ],
+            utility: [
+                { name: "Creative Thinking", val: 90, materia: "materia-green" },
+                { name: "Analytical Thinking", val: 85, materia: "materia-green" },
+                { name: "Problem Solving", val: 90, materia: "materia-green" },
+                { name: "Visual Storytelling", val: 90, materia: "materia-green" },
+                { name: "Team Collaboration", val: 90, materia: "materia-green" },
+                { name: "Leadership", val: 85, materia: "materia-green" },
+                { name: "Adaptability", val: 90, materia: "materia-green" },
+                { name: "Time Management", val: 90, materia: "materia-green" },
+                { name: "Attention to Detail", val: 90, materia: "materia-green" },
+                { name: "AI-Assisted Workflow", val: 80, materia: "materia-green" },
+                { name: "Presentation & Communication", val: 85, materia: "materia-green" },
+                { name: "Resilient & Fast Learner", val: 90, materia: "materia-green" }
+            ],
+            comm: [
+                { name: "English (Limited Working Proficiency)", val: 75, materia: "materia-yellow" },
+                { name: "Bahasa Indonesia (Native Speaker)", val: 100, materia: "materia-yellow" }
+            ]
+        };
+
+        // Fungsi Rendering Daftar Keahlian Dinamis
+        function buildSkillNodes() {
+            const designCont = document.getElementById('design-container');
+            const utilityCont = document.getElementById('utility-container');
+            const commCont = document.getElementById('comm-container');
+
+            if (designCont) {
+                designCont.innerHTML = skills.design.map(s => `
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider font-sans">
+                            <span>${s.name}</span>
+                            <span>${s.val}%</span>
+                        </div>
+                        <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
+                            <div class="h-full ${s.materia} transition-all duration-1000" style="width: ${s.val}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (utilityCont) {
+                utilityCont.innerHTML = skills.utility.map(s => `
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider font-sans">
+                            <span>${s.name}</span>
+                            <span>${s.val}%</span>
+                        </div>
+                        <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
+                            <div class="h-full ${s.materia} transition-all duration-1000" style="width: ${s.val}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (commCont) {
+                commCont.innerHTML = skills.comm.map(s => `
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider font-sans">
+                            <span>${s.name}</span>
+                            <span>${s.val}%</span>
+                        </div>
+                        <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
+                            <div class="h-full ${s.materia} transition-all duration-1000" style="width: ${s.val}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Definisi Kelas Bulu (Feather) untuk Transisi Ledakan Sephiroth (Cakupannya diatur secara Global)
+        class Feather {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const force = Math.random() * 15 + 5;
+                this.vx = Math.cos(angle) * force;
+                this.vy = Math.sin(angle) * force - 3; // Meluncur sedikit ke atas
+                this.rotation = Math.random() * Math.PI;
+                this.spin = (Math.random() - 0.5) * 0.15;
+                this.size = Math.random() * 20 + 15;
+                this.alpha = 1.0;
+                this.gravity = 0.25;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.vx *= 0.96; // Mengalami gesekan udara
+                this.rotation += this.spin;
+                this.alpha -= 0.015;
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#22d3ee';
+                
+                // Menggambar struktur bulu organik dengan kurva Bezier
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.bezierCurveTo(this.size / 3, -this.size / 2, this.size / 2, this.size / 2, 0, this.size);
+                ctx.bezierCurveTo(-this.size / 2, this.size / 2, -this.size / 3, -this.size / 2, 0, -this.size);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Inisialisasi DOM Saat Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            // Jalankan Pembangun Keterampilan
+            buildSkillNodes();
+
+            // Efek Typewriter
+            const typewriterWords = [
+                "Graphic designer",
+                "3D artist",
+                "Architectural Visualizer",
+                "UI/UX Designer",
+                "Academic Researcher"
+            ];
+            let wordIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            const typewriterEl = document.getElementById("typewriter");
+
+            function typeEffect() {
+                if (!typewriterEl) return;
+                const currentWord = typewriterWords[wordIndex];
+                if (isDeleting) {
+                    typewriterEl.textContent = currentWord.substring(0, charIndex - 1);
+                    charIndex--;
+                } else {
+                    typewriterEl.textContent = currentWord.substring(0, charIndex + 1);
+                    charIndex++;
+                }
+
+                let speed = isDeleting ? 40 : 80;
+                if (!isDeleting && charIndex === currentWord.length) {
+                    speed = 2000; // Diam sebentar setelah selesai menulis kata
+                    isDeleting = true;
+                } else if (isDeleting && charIndex === 0) {
+                    isDeleting = false;
+                    wordIndex = (wordIndex + 1) % typewriterWords.length;
+                    speed = 500; // Delay sebelum mulai mengetik kata baru
+                }
+                setTimeout(typeEffect, speed);
+            }
+            typeEffect();
+
+            // Setup Event Handler untuk Menu Seluler (Mobile Menu)
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (menuBtn && mobileMenu) {
+                menuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Handler Form Kontak
+            const contactForm = document.getElementById('contact-form');
+            const formMessage = document.getElementById('form-message');
+            if (contactForm && formMessage) {
+                contactForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    formMessage.textContent = "> SIGNAL_TRANSMISSION_SUCCESSFULLY_ESTABLISHED_WITH_SERVER!";
+                    formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-mako/10 border border-mako text-mako block";
+                    contactForm.reset();
+                    setTimeout(() => {
+                        formMessage.classList.add('hidden');
+                    }, 5000);
+                });
+            }
+
+            // In-View Animation Observer (Reveal elements gracefully)
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+
+            // SISTEM PEMILIHAN FACTION & SWITCHER
+            const bodyEl = document.body;
+            const bootSequence = document.getElementById('boot-sequence');
+            const dualEntryModal = document.getElementById('dual-entry-modal');
+
+            // Boot Sequence Loading Simulation (3 Detik)
+            const bootLogsBox = document.getElementById('boot-logs-box');
+            const bootPercent = document.getElementById('boot-percent');
+            const bootProgressBar = document.getElementById('boot-progress-bar');
+            
+            const bootLogs = [
+                "CONNECTING TO CORE LIFESTREAM DATABASES...",
+                "ESTABLISHING DIRECT CONNECTION CODES (PORT: 777)...",
+                "LOADING CORE SYSTEMS ARCHITECTURE...",
+                "INJECTING ENGINE REBIRTH COMPILERS (v9.9.2)...",
+                "LOADING SCENARIO DATABASE: SECTOR_7_SLUMS...",
+                "FETCHING PARTY_MEMBERS INFRASTRUCTURES...",
+                "RETRIEVING PROFILE RECORD FOR ID: 44-55566688833-99966688...",
+                "PARSING CLASS PROPERTIES: CREATIVE TECHNOMANCER [LV.99]...",
+                "POPULATING CHARACTER SHEET: ATK=255, MAG=250, DEF=235, RES=240, SPD=250...",
+                "LOADING WEAPON DATABASE: BUSTER_BLADE_MK_IV...",
+                "SYNCHRONIZING MATERIA EQUIPMENTS...",
+                "MATERIA_RED (FIRE_MAX) DETECTED // INITIALIZING...",
+                "MATERIA_GREEN (LIFESTREAM_HEAL) DETECTED // INITIALIZING...",
+                "MATERIA_YELLOW (SENSE_ANALYSIS) DETECTED // INITIALIZING...",
+                "CACHING LIMIT_BREAK_SKILL: OMNISLASH_REBIRTH...",
+                "INITIALIZING NPC INVENTORIES & DIALOG_TREES...",
+                "LOADING SCENE MAPS: MIDGAR_OVERWORLD_3D...",
+                "COMPILING SHADERS & VERTEX BUFFER ARRAYS...",
+                "AUTHENTICATING ACADEMIC RESEARCH SYLLABUS INDICES...",
+                "VERIFYING SINTA REGISTERED DATA DIRECTORIES...",
+                "CONNECTING NEURAL UPLINK GATEWAY... STABLE [99.8%]",
+                "ALL CORE SYSTEMS ONLINE // READY FOR ENCOUNTER",
+                "BOOTUP SUCCESSFUL! WELCOME MEMBER: WIRA MAHARDIKA"
+            ];
+            
+            let currentLogIndex = 0;
+            let currentPercent = 0;
+
+            function printLogs() {
+                if (!bootLogsBox) return;
+                if (currentLogIndex < bootLogs.length) {
+                    const logParagraph = document.createElement('p');
+                    logParagraph.className = "text-mako-light tracking-wide text-xs";
+                    logParagraph.innerHTML = `&gt; ${bootLogs[currentLogIndex]}`;
+                    bootLogsBox.appendChild(logParagraph);
+                    
+                    // Auto-scroll ke bawah saat file/log baru masuk
+                    bootLogsBox.scrollTop = bootLogsBox.scrollHeight;
+                    
+                    currentLogIndex++;
+                    setTimeout(printLogs, 130);
+                }
+            }
+
+            function triggerPortalOpenAnimation() {
+                if (bootSequence) bootSequence.classList.add('hidden');
+                if (dualEntryModal) {
+                    dualEntryModal.classList.remove('hidden');
+                    dualEntryModal.classList.add('flex');
+                    // Berikan delay sangat tipis agar browser merender transisi css pintu geser
+                    setTimeout(() => {
+                        dualEntryModal.classList.add('modal-active');
+                    }, 50);
+                }
+            }
+
+            function updateProgress() {
+                if (currentPercent <= 100) {
+                    if (bootPercent) bootPercent.textContent = `${currentPercent}%`;
+                    if (bootProgressBar) bootProgressBar.style.width = `${currentPercent}%`;
+                    currentPercent += 2;
+                    setTimeout(updateProgress, 60);
+                } else {
+                    // Ketika progres mencapai 100%, berikan efek pendaran ganda neon
+                    if (bootPercent && bootProgressBar) {
+                        bootPercent.classList.add('animate-pulse');
+                        bootPercent.style.textShadow = '0 0 15px #10b981, 0 0 30px #34d399';
+                        bootPercent.style.color = '#34d399';
+                        
+                        bootProgressBar.classList.add('animate-pulse');
+                        bootProgressBar.style.boxShadow = '0 0 25px #10b981, 0 0 50px #34d399';
+                    }
+                    
+                    // Jeda tepat 1 detik (1000ms) sebelum memicu portal terbuka sinematis
+                    setTimeout(() => {
+                        triggerPortalOpenAnimation();
+                    }, 1000);
+                }
+            }
+
+            // Mulai Proses Booting
+            printLogs();
+            updateProgress();
+
+            // Bypass Button Handler
+            const bypassBtn = document.getElementById('bypass-boot-btn');
+            if (bypassBtn) {
+                bypassBtn.addEventListener('click', () => {
+                    triggerPortalOpenAnimation();
+                });
+            }
+
+            // Fungsi Ganti Mode Utama (Creative vs Academic)
+            function setPortfolioMode(mode) {
+                bodyEl.setAttribute('data-mode', mode);
+                
+                // Set Global CSS Variables untuk pendaran dinamis
+                if (mode === 'creative') {
+                    document.documentElement.style.setProperty('--theme-accent', '#10b981');
+                    document.documentElement.style.setProperty('--theme-accent-glow', 'rgba(16, 185, 129, 0.6)');
+                    document.documentElement.style.setProperty('--theme-border-color', 'rgba(16, 185, 129, 0.2)');
+                    document.documentElement.style.setProperty('--theme-grid-color', 'rgba(16, 185, 129, 0.03)');
+                } else {
+                    document.documentElement.style.setProperty('--theme-accent', '#2563eb');
+                    document.documentElement.style.setProperty('--theme-accent-glow', 'rgba(37, 99, 235, 0.4)');
+                    document.documentElement.style.setProperty('--theme-border-color', '#cbd5e1');
+                    document.documentElement.style.setProperty('--theme-grid-color', 'rgba(37, 99, 235, 0.04)');
+                }
+
+                // Perbarui Status Aktif Tombol Switcher di Seluruh Halaman
+                const allSwitcherBtns = document.querySelectorAll('.mode-toggle-btn');
+                allSwitcherBtns.forEach(btn => {
+                    const btnMode = btn.getAttribute('data-mode');
+                    if (btnMode === mode) {
+                        btn.className = "mode-toggle-btn px-3 py-1 font-bold transition-all text-black bg-mako";
+                        if (mode === 'academic') {
+                            btn.className = "mode-toggle-btn px-3 py-1 font-bold transition-all text-white bg-blue-600";
+                        }
+                    } else {
+                        btn.className = "mode-toggle-btn px-3 py-1 font-bold transition-all text-gray-400 hover:text-white";
+                    }
+                });
+            }
+
+            // Trigger Pilihan Faksi
+            const selectCreativeBtn = document.getElementById('select-creative-btn');
+            const selectAcademicBtn = document.getElementById('select-academic-btn');
+
+            if (selectCreativeBtn) {
+                selectCreativeBtn.addEventListener('click', () => {
+                    triggerExplosionTransition();
+                    setPortfolioMode('creative');
+                    if (dualEntryModal) {
+                        dualEntryModal.classList.add('hidden');
+                        dualEntryModal.classList.remove('flex');
+                    }
+                });
+            }
+
+            if (selectAcademicBtn) {
+                selectAcademicBtn.addEventListener('click', () => {
+                    triggerExplosionTransition();
+                    setPortfolioMode('academic');
+                    if (dualEntryModal) {
+                        dualEntryModal.classList.add('hidden');
+                        dualEntryModal.classList.remove('flex');
+                    }
+                });
+            }
+
+            // Switcher Navtop Klik Handler
+            const switcherButtons = document.querySelectorAll('.mode-toggle-btn');
+            switcherButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetMode = btn.getAttribute('data-mode');
+                    triggerExplosionTransition();
+                    setPortfolioMode(targetMode);
+                });
+            });
+
+            // Limit Break Button Easter Egg (Recharge Animation Flow)
+            const limitBreakBtn = document.getElementById('limit-break-btn');
+            const limitBar = document.getElementById('limit-bar');
+            const limitText = document.getElementById('limit-text');
+            const limitOverlay = document.getElementById('limit-break-overlay');
+
+            if (limitBreakBtn && limitBar && limitText && limitOverlay) {
+                limitBreakBtn.addEventListener('click', () => {
+                    // 1. Jalankan Animasi Limit Break (Getaran Layar + Flash)
+                    limitText.textContent = "LIMIT BREAK ACTIVATED!";
+                    limitText.className = "text-red-500 font-extrabold animate-ping";
+                    limitOverlay.classList.remove('opacity-0');
+                    limitOverlay.classList.add('opacity-40');
+                    document.body.classList.add('shake-active');
+                    
+                    setTimeout(() => {
+                        // 2. Berhentikan efek getaran & flash
+                        limitOverlay.classList.remove('opacity-40');
+                        limitOverlay.classList.add('opacity-0');
+                        document.body.classList.remove('shake-active');
+                        
+                        // 3. Kosongkan bar seketika & ganti status ke STANDBY (redup)
+                        limitBar.style.transition = 'none';
+                        limitBar.style.width = '0%';
+                        limitText.textContent = "STANDBY";
+                        limitText.className = "text-gray-500 text-[11px] tracking-widest animate-pulse";
+                        
+                        // 4. Beri jeda kosong selama tepat 1 detik (1000ms)
+                        setTimeout(() => {
+                            // 5. Mulai animasi pengisian bar secara halus ke 100%
+                            limitBar.style.transition = 'width 2.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            limitBar.style.width = '100%';
+                            
+                            // 6. Selesai pengisian (2.5 detik), ganti teks kembali menjadi READY
+                            setTimeout(() => {
+                                limitText.textContent = "READY";
+                                limitText.className = "text-orange-400 text-[11px] tracking-widest animate-pulse";
+                            }, 2500);
+
+                        }, 1000); // Jeda 1 detik standby
+                        
+                    }, 1200); // Durasi animasi getar/flash asli
+                });
+            }
+        });
+
+        // 3D KANVAS LIFESTREAM ENGINE (Mako Particles Floating)
+        const lifestreamCanvas = document.getElementById('mako-lifestream');
+        if (lifestreamCanvas) {
+            const ctx = lifestreamCanvas.getContext('2d');
+            let particles = [];
+            
+            function resizeCanvas() {
+                lifestreamCanvas.width = window.innerWidth;
+                lifestreamCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class MakoParticle {
+                constructor() {
+                    this.reset();
+                }
+                reset() {
+                    this.x = Math.random() * lifestreamCanvas.width;
+                    this.y = lifestreamCanvas.height + Math.random() * 100;
+                    this.size = Math.random() * 3.5 + 1;
+                    this.speedY = Math.random() * 1.5 + 0.4;
+                    this.speedX = Math.sin(Math.random() * 2) * 0.5;
+                    this.alpha = Math.random() * 0.7 + 0.2;
+                }
+                update() {
+                    this.y -= this.speedY;
+                    this.x += this.speedX;
+                    if (this.y < -10) {
+                        this.reset();
+                    }
+                }
+                draw() {
+                    ctx.save();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#10b981';
+                    ctx.fillStyle = `rgba(16, 185, 129, ${this.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            for (let i = 0; i < 45; i++) {
+                particles.push(new MakoParticle());
+            }
+
+            function animateLifestream() {
+                if (document.body.getAttribute('data-mode') === 'creative') {
+                    ctx.clearRect(0, 0, lifestreamCanvas.width, lifestreamCanvas.height);
+                    particles.forEach(p => {
+                        p.update();
+                        p.draw();
+                    });
+                }
+                requestAnimationFrame(animateLifestream);
+            }
+            animateLifestream();
+        }
+
+        // 3D SEPHIROTH ANGEL FEATHER EXPLOSION TRANSITION
+        const transCanvas = document.getElementById('transition-canvas');
+        let feathers = [];
+        let animationActive = false;
+        let tCtx = null;
+
+        if (transCanvas) {
+            tCtx = transCanvas.getContext('2d');
+            
+            function resizeTransCanvas() {
+                transCanvas.width = window.innerWidth;
+                transCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeTransCanvas);
+            resizeTransCanvas();
+        }
+
+        function triggerExplosionTransition() {
+            if (!transCanvas) return;
+            feathers = [];
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Ledakkan 180 Helai Bulu Sayap Malaikat 3D
+            for (let i = 0; i < 180; i++) {
+                feathers.push(new Feather(centerX, centerY));
+            }
+
+            if (!animationActive) {
+                animationActive = true;
+                animateFeathers();
+            }
+        }
+
+        function animateFeathers() {
+            if (!transCanvas || !tCtx) return;
+            tCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
+            
+            feathers = feathers.filter(f => f.alpha > 0);
+            feathers.forEach(f => {
+                f.update();
+                f.draw(tCtx); // Mengirimkan tCtx ke fungsi draw bulu sayap
+            });
+
+            if (feathers.length > 0) {
+                requestAnimationFrame(animateFeathers);
+            } else {
+                animationActive = false;
+            }
+        }
+    </script>
+</body>
+</html>
