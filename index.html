@@ -2684,7 +2684,7 @@
                 <div class="lg:col-span-7 ff-panel p-8 border-2 border-mako/20 relative reveal" style="transition-delay: 150ms">
                     <div id="form-message" class="hidden mb-6 p-4 rounded-none text-xs font-hud font-semibold"></div>
 
-                    <form id="contact-form" class="space-y-6">
+                    <form id="contact-form" class="space-y-6" method="POST" action="https://formspree.io/f/wimatra_contact_2026">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label for="name" class="block text-[11px] font-hud font-bold text-gray-400 uppercase tracking-widest mb-2">// USER_NAME</label>
@@ -3695,18 +3695,54 @@
                 });
             });
 
-            // Contact Form Handler
+            // Contact Form Handler with Formspree
             const contactForm = document.getElementById('contact-form');
             const formMessage = document.getElementById('form-message');
             if (contactForm && formMessage) {
-                contactForm.addEventListener('submit', (e) => {
+                contactForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    formMessage.textContent = "> SIGNAL_TRANSMISSION_SUCCESSFULLY_ESTABLISHED_WITH_SERVER!";
-                    formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-mako/10 border border-mako text-mako block";
-                    contactForm.reset();
+                    
+                    const formData = new FormData(contactForm);
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+                    const subject = document.getElementById('subject').value;
+                    const message = document.getElementById('message').value;
+
+                    try {
+                        formMessage.textContent = "> SIGNAL_TRANSMISSION_IN_PROGRESS...";
+                        formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-yellow-500/10 border border-yellow-500 text-yellow-400 block";
+
+                        const response = await fetch('https://formspree.io/f/wimatra_contact_2026', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                name: name,
+                                email: email,
+                                subject: subject,
+                                message: message
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (response.ok) {
+                            formMessage.textContent = "✓ SIGNAL_TRANSMISSION_SUCCESSFULLY_ESTABLISHED! EMAIL DELIVERED TO WIRA_INBOX.";
+                            formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-mako/10 border border-mako text-mako block";
+                            contactForm.reset();
+                        } else {
+                            formMessage.textContent = "✗ SIGNAL_TRANSMISSION_ERROR. PLEASE_RETRY.";
+                            formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-red-500/10 border border-red-500 text-red-400 block";
+                        }
+                    } catch (error) {
+                        formMessage.textContent = "✗ TRANSMISSION_FAILED: " + error.message;
+                        formMessage.className = "mb-6 p-4 rounded-none text-xs font-hud font-semibold bg-red-500/10 border border-red-500 text-red-400 block";
+                    }
+
+                    formMessage.classList.remove('hidden');
                     setTimeout(() => {
                         formMessage.classList.add('hidden');
-                    }, 5000);
+                    }, 7000);
                 });
             }
 
