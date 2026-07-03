@@ -866,6 +866,56 @@
         #panorama-container {
             pointer-events: auto;
         }
+
+        /* ==================== IMAGE PROTECTION: OPTION C (ADVANCED) ==================== */
+        /* Protected gallery images with watermark overlay */
+        .protected-image {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            position: relative;
+        }
+
+        /* Watermark overlay on gallery items */
+        .protected-image::after {
+            content: '© WIRA M.P.';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 32px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.35);
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 2;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        /* Additional protection overlay */
+        .image-protection-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 48%, rgba(0, 0, 0, 0.02) 49%, rgba(0, 0, 0, 0.02) 51%, transparent 52%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Disable image drag and prevent context menu */
+        .protected-image img {
+            user-select: none;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
+
+        /* Gallery grid items protection */
+        #creative-gallery-grid .protected-image {
+            overflow: hidden;
+        }
     </style>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1165,11 +1215,12 @@
                     </div>
 
                     <div class="flex items-center space-x-4 mb-6">
-                        <div class="relative w-20 h-20 bg-gray-900 border border-mako/50 p-1">
-                            <div class="w-full h-full bg-gradient-to-b from-emerald-950 to-gray-900 flex items-center justify-center text-mako">
-                                <i class="fa-solid fa-user text-3xl animate-pulse"></i>
-                            </div>
+                        <div class="relative w-20 h-20 bg-gray-900 border border-mako/50 p-1 cursor-pointer hover:border-mako transition-all group" onclick="openProfilePhotoModal()" id="profile-photo-preview">
+                            <img id="profile-photo-closeup" src="Photo Profile_Wira_01.jpg" alt="Profile Photo" class="w-full h-full object-cover object-top">
                             <div class="absolute bottom-0 right-0 w-3 h-3 bg-mako"></div>
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-sm">
+                                <span class="text-[8px] text-mako font-hud tracking-widest">VIEW</span>
+                            </div>
                         </div>
                         <div>
                             <h3 class="font-hud text-lg font-black text-white tracking-wider">WIRA M.P.</h3>
@@ -1520,11 +1571,12 @@
 
                 <!-- Filter Controls inside Monitor -->
                 <div class="flex flex-wrap gap-3 mb-8 font-hud text-[11px] tracking-wider justify-center sm:justify-start">
-                    <button class="gallery-filter-btn px-4 py-2 bg-mako text-black font-extrabold transition-all" data-filter="3d_art">3D_ART</button>
-                    <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="architectural_visualization">ARCHITECTURAL_VISUALIZATION</button>
+                    <button class="gallery-filter-btn px-4 py-2 bg-mako text-black font-extrabold transition-all" data-filter="architectural_visualization">ARCHITECTURAL_VISUALIZATION</button>
+                    <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="3d_art">3D_ART</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="graphic_design">GRAPHIC_DESIGN</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="ui_ux">UI_UX</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="illustration">ILLUSTRATION</button>
+                    <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="comic">COMIC</button>
                 </div>
 
                 <!-- Creative Monitor Main Grid -->
@@ -1559,12 +1611,33 @@
             </button>
 
             <!-- Centered Sliding Display Screen -->
-            <div id="modal-display-frame" class="flex-grow h-full max-h-[85vh] flex flex-col items-center justify-center relative select-none">
+            <div id="modal-display-frame" class="flex-grow h-full max-h-screen sm:max-h-[85vh] flex flex-col items-center justify-center relative select-none">
                 <!-- Regular Image Display -->
-                <img id="carousel-active-image" src="" alt="Active Portfolio Asset" class="max-w-full max-h-[68vh] md:max-h-[75vh] object-contain shadow-2xl transition-transform duration-300 scale-95" onerror="this.onerror=null; this.src='https://placehold.co/1200x800/0b1326/10b981?text=Asset+Failed+to+Load';">
+                <img id="carousel-active-image" src="" alt="Active Portfolio Asset" class="w-full h-full sm:w-auto sm:h-auto max-w-full sm:max-w-full max-h-screen sm:max-h-[75vh] object-contain object-center shadow-2xl transition-transform duration-300 sm:scale-95" draggable="false" style="user-select: none; -webkit-user-select: none;" onerror="this.onerror=null; this.src='https://placehold.co/1200x800/0b1326/10b981?text=Asset+Failed+to+Load';">
                 
                 <!-- 360 Panorama Viewer Container -->
-                <div id="panorama-container" class="hidden w-full h-full max-h-[68vh] md:max-h-[75vh]" style="border-radius: 8px; overflow: hidden;"></div>
+                <div id="panorama-container" class="hidden w-full h-full max-h-screen sm:max-h-[75vh]" style="border-radius: 8px; overflow: hidden;"></div>
+                
+                <!-- PDF Viewer Container -->
+                <div id="pdf-container" class="hidden w-full h-full max-h-screen sm:max-h-[75vh] bg-black rounded-lg overflow-hidden" style="display: flex; align-items: center; justify-content: center;">
+                    <embed id="pdf-viewer" src="" type="application/pdf" width="100%" height="100%" style="border: none;">
+                </div>
+
+                <!-- Carousel Watermark Overlay -->
+                <div id="carousel-watermark" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 opacity-0 transition-opacity duration-300" style="display: none;">
+                    <div style="
+                        font-size: 48px;
+                        font-weight: bold;
+                        color: rgba(255, 255, 255, 0.35);
+                        transform: rotate(-45deg);
+                        text-align: center;
+                        white-space: nowrap;
+                        font-family: 'Orbitron', sans-serif;
+                        letter-spacing: 3px;
+                        text-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+                        user-select: none;
+                    ">© WIRA M.P.</div>
+                </div>
                 
                 <!-- Floating Info Overlay inside Frame -->
                 <div class="mt-4 text-center max-w-3xl px-4 select-text">
@@ -1585,6 +1658,20 @@
         <!-- Swipe Indicator Instructions -->
         <div class="w-full max-w-4xl border-t border-gray-900 pt-3 relative z-10 text-center text-[10px] text-gray-500 font-hud tracking-widest uppercase">
             <span>Swipe Left/Right or Use Keyboard [&larr;] [&rarr;] to Browse Archive</span>
+        </div>
+    </div>
+
+    <!-- Profile Photo Fullscreen Modal -->
+    <div id="profile-photo-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[160] hidden flex items-center justify-center p-4 select-none transition-opacity duration-300 opacity-0" onclick="closeProfilePhotoModal(event)">
+        <!-- Close Button -->
+        <button id="profile-photo-close-btn" class="absolute top-8 right-8 text-gray-400 hover:text-white transition-all focus:outline-none z-10 flex items-center space-x-2 text-sm font-hud" onclick="closeProfilePhotoModal()">
+            <span class="creative-only font-bold">[ CLOSE ]</span>
+            <i class="fa-solid fa-square-xmark text-2xl"></i>
+        </button>
+
+        <!-- Photo Display -->
+        <div class="w-full max-w-4xl max-h-[90vh] flex items-center justify-center">
+            <img id="profile-photo-fullscreen" src="Photo Profile_Wira_01.jpg" alt="Profile Photo Full" class="max-w-full max-h-full object-contain shadow-2xl border-2 border-mako/30">
         </div>
     </div>
 
@@ -2757,17 +2844,17 @@
             {
                 id: 3,
                 category: "3d_art",
-                title: "3D Icons Collection",
-                desc: "Set of custom 3D icons featuring clean geometry and modern design principles.",
-                src: "Image_portofolio/3D_Art/04_3D Icons.png",
+                title: "Perfume Lux 3D Render",
+                desc: "Premium fragrance bottle rendered with sophisticated metallic and glass effects.",
+                src: "Image_portofolio/3D_Art/04_Perfume Lux.png",
                 tag: "3D ART & MODELING"
             },
             {
                 id: 4,
                 category: "3d_art",
-                title: "Ancient Materia Vessel Orb",
-                desc: "Magical containment module demonstrating complex translucent glass refraction shading.",
-                src: "https://placehold.co/1200x800/021e14/10b981?text=Ancient+Materia+Orb+Refraction",
+                title: "3D Icons Collection",
+                desc: "Set of custom 3D icons featuring clean geometry and modern design principles.",
+                src: "Image_portofolio/3D_Art/05_3D Icons.png",
                 tag: "3D ART & MODELING"
             },
             {
@@ -3034,78 +3121,89 @@
             {
                 id: 36,
                 category: "illustration",
-                title: "Dhikr Clothes Kid Mascot",
-                desc: "Character concepts modeled with clean outlines and bright, friendly vector palettes.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Dhikr+Mascot+Illustration",
+                title: "Dawn Magus Sister",
+                desc: "Mystical character design featuring ethereal robes and glowing enchantment effects.",
+                src: "Image_portofolio/Illustration/01_Dawn Magus Sister.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 37,
                 category: "illustration",
-                title: "Midgar Overworld Narrative Plate",
-                desc: "Comic layout pages detailing storyboards for USA Capsule LLC production releases.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Midgar+Overworld+Comic+Plate",
+                title: "Pure Garuda",
+                desc: "Divine mythical creature artwork showcasing intricate feather patterns and celestial aura.",
+                src: "Image_portofolio/Illustration/02_Pure Garuda.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 38,
                 category: "illustration",
-                title: "Chocobo Stable Vector Artwork",
-                desc: "Charming fantasy farm illustration utilizing flat vectors and gentle warm lighting gradients.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Chocobo+Stable+Vector+Illustration",
+                title: "Altara and Alcyna",
+                desc: "Character pair illustration with complementary design aesthetics and narrative depth.",
+                src: "Image_portofolio/Illustration/03_Altara and Alcyna.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 39,
                 category: "illustration",
-                title: "Pixel Art Sephiroth Portrait",
-                desc: "Chibi-style detailed portrait made using custom-crafted retro 32-bit pixel arrangements.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Pixel+Art+Sephiroth+Portrait",
+                title: "Alcyna",
+                desc: "Detailed character portrait with refined linework and dynamic composition.",
+                src: "Image_portofolio/Illustration/04_Alcyna.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 40,
                 category: "illustration",
-                title: "Vocational Mascot Design Suite",
-                desc: "Character guide sheets showing front, side, and action poses of the vocational school's hero.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Vocational+School+Mascot+Sheet",
+                title: "Flazzy",
+                desc: "Charming character design with expressive features and vibrant color palette.",
+                src: "Image_portofolio/Illustration/05_Flazzy.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 41,
                 category: "illustration",
-                title: "Cyberpunk Mercenary Concept Sketch",
-                desc: "Hand-drawn digital ink sketch featuring detailed leather fold lines and glowing cyber-goggles.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Cyberpunk+Mercenary+Ink+Sketch",
+                title: "Wedding Runner",
+                desc: "Scenic illustration depicting dynamic character motion in elegant ceremonial setting.",
+                src: "Image_portofolio/Illustration/06_Wedding Runner.png",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 42,
                 category: "illustration",
-                title: "Flat Vector Education Icons",
-                desc: "High-contrast pack containing 16 matching icons for textbook diagrams and scientific manuals.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Flat+Vector+Education+Icon+Pack",
+                title: "Bizz Suit Character",
+                desc: "Professional character design featuring detailed business attire and professional styling.",
+                src: "Image_portofolio/Illustration/07_Bizz Suit Char.jpg",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 43,
                 category: "illustration",
-                title: "Mythic Phoenix Summon Sigil",
-                desc: "Symmetrical vector emblem combining fiery feather patterns with sharp runes.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Phoenix+Summon+Emblem+Illustration",
+                title: "Dhikr Kids Character",
+                desc: "Youthful character design with friendly personality and educational appeal.",
+                src: "Image_portofolio/Illustration/08_Dhikr Kids Character.jpg",
                 tag: "ILLUSTRATION"
             },
             {
                 id: 44,
                 category: "illustration",
-                title: "Fantasy Airship Lineart Blueprint",
-                desc: "Technical cross-section diagram outlining sails, wood hulls, and internal boiler systems.",
-                src: "https://placehold.co/1200x800/3b0764/c084fc?text=Fantasy+Airship+Lineart+Blueprint",
+                title: "FCC Design Card",
+                desc: "Digital card design showcasing creative illustration and sophisticated visual composition.",
+                src: "Image_portofolio/Illustration/09_FCC Design Card.jpg",
                 tag: "ILLUSTRATION"
+            },
+
+            // ================= TAB 6: COMIC =================
+            {
+                id: 45,
+                category: "comic",
+                title: "Comic Saga",
+                desc: "Epic graphic novel featuring compelling narrative storytelling, intricate artwork, and immersive world-building across multiple chapters.",
+                src: "Image_portofolio/Comic/Comic Saga.pdf",
+                tag: "COMIC",
+                isPdf: true
             }
         ];
 
-        let activeGalleryFilter = "3d_art";
+        let activeGalleryFilter = "architectural_visualization";
         let activeCarouselIndex = 0;
         let filteredCarouselItems = [];
 
@@ -3117,10 +3215,14 @@
             if (creativeGrid) {
                 creativeGrid.innerHTML = filteredCarouselItems.map((item, index) => `
                     <div class="group relative overflow-hidden bg-black/40 border border-mako/20 hover:border-mako/70 shadow transition-all duration-300 cursor-pointer" onclick="openCarouselModal(${index})">
-                        <div class="aspect-[4/3] overflow-hidden bg-[#0a101d] relative">
-                            <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 opacity-80 group-hover:opacity-100">
+                        <div class="aspect-[4/3] overflow-hidden bg-[#0a101d] relative protected-image">
+                            <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 opacity-80 group-hover:opacity-100" draggable="false">
                             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
+                            <div class="image-protection-overlay"></div>
                             <span class="absolute top-3 left-3 text-[9px] font-hud bg-black/80 text-mako border border-mako/40 px-2 py-0.5 tracking-widest uppercase">// SEC_ID: ${item.id}</span>
+                            ${item.isPdf ? `
+                                <span class="absolute top-3 right-3 text-[9px] font-hud bg-red-900/80 text-red-300 border border-red-400/40 px-2 py-0.5 tracking-widest uppercase animate-pulse">📄 PDF VIEWER</span>
+                            ` : ''}
                             ${item.isPanorama ? `
                                 <span class="absolute top-3 right-3 text-[9px] font-hud bg-cyan-900/80 text-cyan-300 border border-cyan-400/40 px-2 py-0.5 tracking-widest uppercase animate-pulse">360° INTERACTIVE</span>
                                 <span class="absolute top-3 right-[140px] text-[8px] font-hud bg-purple-900/80 text-purple-300 border border-purple-400/40 px-1.5 py-0.5 tracking-widest uppercase">EXTERNAL VIEWER</span>
@@ -3162,17 +3264,64 @@
             }, 300);
         }
 
+        function openProfilePhotoModal() {
+            const modal = document.getElementById("profile-photo-modal");
+            if (!modal) return;
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                modal.classList.remove("opacity-0");
+                modal.classList.add("opacity-100");
+            }, 50);
+        }
+
+        function closeProfilePhotoModal(event) {
+            // Allow closing by clicking outside the image or on the close button
+            if (event && event.target.id !== "profile-photo-modal") return;
+
+            const modal = document.getElementById("profile-photo-modal");
+            if (!modal) return;
+
+            modal.classList.remove("opacity-100");
+            modal.classList.add("opacity-0");
+            setTimeout(() => {
+                modal.classList.remove("flex");
+                modal.classList.add("hidden");
+            }, 300);
+        }
+
         function updateCarouselSlide() {
             if (filteredCarouselItems.length === 0) return;
             const currentItem = filteredCarouselItems[activeCarouselIndex];
 
             const activeImage = document.getElementById("carousel-active-image");
             const panoramaContainer = document.getElementById("panorama-container");
+            const pdfContainer = document.getElementById("pdf-container");
+            const pdfViewer = document.getElementById("pdf-viewer");
+            const watermark = document.getElementById("carousel-watermark");
 
-            // Check if current item is a 360 panorama
-            if (currentItem.isPanorama) {
+            // Check if current item is a PDF
+            if (currentItem.isPdf) {
+                // Hide image and panorama, show PDF
+                if (activeImage) activeImage.classList.add("hidden");
+                if (panoramaContainer) panoramaContainer.classList.add("hidden");
+                if (watermark) {
+                    watermark.style.display = "none";
+                }
+                if (pdfContainer) {
+                    pdfContainer.classList.remove("hidden");
+                    if (pdfViewer) {
+                        pdfViewer.src = currentItem.src;
+                    }
+                }
+            } else if (currentItem.isPanorama) {
                 // Hide image, show panorama info
                 if (activeImage) activeImage.classList.add("hidden");
+                if (pdfContainer) pdfContainer.classList.add("hidden");
+                if (watermark) {
+                    watermark.style.display = "none";
+                }
                 if (panoramaContainer) {
                     panoramaContainer.classList.remove("hidden");
                     panoramaContainer.innerHTML = `
@@ -3208,8 +3357,16 @@
                     `;
                 }
             } else {
-                // Show image, hide panorama viewer
+                // Show image, hide panorama viewer and PDF
                 if (panoramaContainer) panoramaContainer.classList.add("hidden");
+                if (pdfContainer) pdfContainer.classList.add("hidden");
+                if (watermark) {
+                    watermark.style.display = "flex";
+                    setTimeout(() => {
+                        watermark.classList.add("opacity-100");
+                        watermark.classList.remove("opacity-0");
+                    }, 50);
+                }
                 if (activeImage) {
                     activeImage.classList.remove("hidden");
                     activeImage.style.transform = "scale(0.95)";
@@ -3237,6 +3394,9 @@
             if (activeTitle) activeTitle.textContent = currentItem.title;
             if (activeTitleAcad) activeTitleAcad.textContent = currentItem.title;
             if (activeDesc) activeDesc.textContent = currentItem.desc;
+            
+            // Reapply protection to carousel image
+            setTimeout(applyImageProtection, 100);
         }
 
         function nextCarouselSlide() {
@@ -4033,6 +4193,128 @@
                 if(onDone)onDone();
             }
         }
+
+        /* ==================== IMAGE PROTECTION: OPTION C (ADVANCED) ==================== */
+        
+        // Comprehensive right-click protection
+        function blockContextMenu(e) {
+            const target = e.target;
+            // Block on protected gallery images
+            if (target.tagName === 'IMG' && target.closest('.protected-image')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            // Block on carousel image
+            if (target.id === 'carousel-active-image') {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+
+        // Prevent drag on all protected images
+        function blockDrag(e) {
+            const target = e.target;
+            if (target.tagName === 'IMG' && (target.closest('.protected-image') || target.id === 'carousel-active-image')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+
+        // Prevent mousedown save
+        function blockMouseDown(e) {
+            if (e.button === 2) { // right-click button
+                const target = e.target;
+                if (target.tagName === 'IMG' && (target.closest('.protected-image') || target.id === 'carousel-active-image')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }
+        }
+
+        // Attach event listeners with multiple triggers
+        document.addEventListener('contextmenu', blockContextMenu, true);
+        document.addEventListener('contextmenu', blockContextMenu, false);
+        
+        document.addEventListener('dragstart', blockDrag, true);
+        document.addEventListener('dragstart', blockDrag, false);
+        
+        document.addEventListener('mousedown', blockMouseDown, true);
+        document.addEventListener('mousedown', blockMouseDown, false);
+
+        // Additional: Block copy/paste on images
+        document.addEventListener('copy', function(e) {
+            const target = e.target;
+            if (target.tagName === 'IMG' && (target.closest('.protected-image') || target.id === 'carousel-active-image')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+
+        // Additional: Disable img element's context menu attribute
+        window.addEventListener('load', function() {
+            const protectedImgs = document.querySelectorAll('.protected-image img, #carousel-active-image');
+            protectedImgs.forEach(img => {
+                img.oncontextmenu = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                };
+            });
+        });
+
+        // Apply protection to gallery items after rendering
+        function applyImageProtection() {
+            const protectedImages = document.querySelectorAll('.protected-image img, #carousel-active-image');
+            protectedImages.forEach(img => {
+                img.setAttribute('draggable', 'false');
+                img.style.userSelect = 'none';
+                img.style.webkitUserSelect = 'none';
+                img.style.webkitUserDrag = 'none';
+                img.style.pointerEvents = 'none';
+                
+                // Explicitly block context menu on each image
+                img.oncontextmenu = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                };
+                
+                // Block mousedown
+                img.onmousedown = function(e) {
+                    if (e.button === 2) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                };
+                
+                // Block drag
+                img.ondragstart = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                };
+            });
+        }
+
+        // Apply protection after gallery renders
+        const originalRenderGalleryGrids = renderGalleryGrids;
+        renderGalleryGrids = function() {
+            originalRenderGalleryGrids.call(this);
+            setTimeout(applyImageProtection, 100);
+        };
+
+        // Initial protection apply on page load
+        window.addEventListener('load', function() {
+            applyImageProtection();
+            // Reapply every 2 seconds to catch dynamically loaded images
+            setInterval(applyImageProtection, 2000);
+        });
     </script>
 
     <script>
