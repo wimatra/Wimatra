@@ -156,6 +156,38 @@
             filter: blur(0px);
         }
 
+        #profile-photo-modal {
+            perspective: 1200px;
+        }
+        #profile-photo-modal .photo-modal-frame {
+            width: min(37.5vw, calc(100% - 2rem));
+            height: min(37.5vh, calc(100% - 2rem));
+            transform-style: preserve-3d;
+            transition: transform 0.45s ease, opacity 0.45s ease;
+        }
+        #profile-photo-modal .photo-modal-frame img {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+        }
+        @keyframes profile-photo-3d-in {
+            0% {
+                opacity: 0;
+                transform: translateY(24px) rotateX(18deg) rotateY(-22deg) scale(0.78);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+            }
+        }
+        #profile-photo-modal.profile-photo-open .photo-modal-frame {
+            animation: profile-photo-3d-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
         /* --- SSS / MYTHIC DYNAMIC GLINTS (Right to Left sweep) --- */
         @keyframes shine-sweep-rtl {
             0% { transform: translateX(150%); }
@@ -308,12 +340,13 @@
             100% { background-position: 0% 50%; }
         }
         @keyframes sss-badge-glow {
-            0%, 100% { box-shadow: 0 0 10px rgba(244, 63, 94, 0.6), inset 0 0 5px rgba(255, 255, 255, 0.5); }
-            50% { box-shadow: 0 0 22px rgba(6, 182, 212, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.7); }
+            0%, 100% { box-shadow: 0 0 16px rgba(255, 255, 255, 0.85), inset 0 0 8px rgba(255, 255, 255, 0.65), inset 0 0 24px rgba(16, 185, 129, 0.35); }
+            50% { box-shadow: 0 0 36px rgba(255, 255, 255, 1), inset 0 0 16px rgba(255, 255, 255, 0.95), inset 0 0 36px rgba(16, 185, 129, 0.5); }
         }
         @keyframes badge-glint-sweep {
-            0% { transform: translateX(-150%) skewX(-25deg); }
-            35%, 100% { transform: translateX(150%) skewX(-25deg); }
+            0% { transform: translateX(-160%) skewX(-25deg); opacity: 0.45; }
+            45% { opacity: 1; }
+            100% { transform: translateX(160%) skewX(-25deg); opacity: 0.45; }
         }
         
         /* SSS Badge: Rainbow solid fill + high frequency specular glint */
@@ -324,24 +357,37 @@
             color: #0c1322 !important;
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
-            text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.9);
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
             position: relative;
             overflow: hidden;
-            padding: 4px 10px;
-            letter-spacing: 0.1em;
+            padding: 5px 12px;
+            letter-spacing: 0.12em;
             display: inline-flex;
             align-items: center;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 11px;
+        }
+        .rank-badge-sss::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.35), transparent 25%);
+            opacity: 0.6;
+            pointer-events: none;
+            filter: blur(3px);
         }
         .rank-badge-sss::after {
             content: '';
             position: absolute;
-            top: 0; left: -50%; width: 200%; height: 100%;
+            top: 0; left: -60%; width: 220%; height: 100%;
             background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.95), transparent);
-            transform: translateX(-150%) skewX(-25deg);
-            animation: badge-glint-sweep 1.8s infinite ease-in-out;
+            transform: translateX(-160%) skewX(-25deg);
+            animation: badge-glint-sweep 1.4s infinite ease-in-out;
+            opacity: 0.7;
         }
 
         /* SS Badge: Platinum solid fill + reflective shimmer */
@@ -1235,10 +1281,10 @@
                         <div>
                             <div class="flex justify-between items-baseline mb-1">
                                 <span class="text-mako-light font-bold text-xs">HP</span>
-                                <span class="text-white text-2xl font-black tracking-wider">9999 / 9999</span>
+                                <span class="text-white text-2xl font-black tracking-wider"><span id="hp-current" data-target-number="9999">0</span> / 9999</span>
                             </div>
                             <div class="w-full bg-gray-900 h-2 border border-mako/20">
-                                <div class="bg-gradient-to-r from-emerald-500 to-mako h-full shadow-[0_0_8px_#10b981]"></div>
+                                <div id="hp-bar" class="bg-gradient-to-r from-emerald-500 to-mako h-full shadow-[0_0_8px_#10b981] transition-all duration-1000" data-target-width="100%" style="width: 0%;"></div>
                             </div>
                         </div>
 
@@ -1246,10 +1292,10 @@
                         <div>
                             <div class="flex justify-between items-baseline mb-1">
                                 <span class="text-teal-400 font-bold text-xs">MP</span>
-                                <span class="text-white text-2xl font-black tracking-wider">999 / 999</span>
+                                <span class="text-white text-2xl font-black tracking-wider"><span id="mp-current" data-target-number="999">0</span> / 999</span>
                             </div>
                             <div class="w-full bg-gray-950 h-2 border border-mako/20">
-                                <div class="bg-gradient-to-r from-teal-500 to-cyan-400 h-full shadow-[0_0_8px_rgba(34,211,238,0.7)]"></div>
+                                <div id="mp-bar" class="bg-gradient-to-r from-teal-500 to-cyan-400 h-full shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all duration-1000" data-target-width="100%" style="width: 0%;"></div>
                             </div>
                         </div>
 
@@ -1260,7 +1306,7 @@
                                 <span class="text-orange-400 text-[11px] tracking-widest" id="limit-text">READY</span>
                             </div>
                             <div class="w-full bg-gray-900 h-3 border border-orange-500/20 relative overflow-hidden">
-                                <div id="limit-bar" class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-full shadow-[0_0_12px_#f97316] transition-all duration-300" style="width: 100%;"></div>
+                                <div id="limit-bar" class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-full shadow-[0_0_12px_#f97316] transition-all duration-1000" data-target-width="100%" style="width: 0%;"></div>
                             </div>
                         </div>
                     </div>
@@ -1272,42 +1318,42 @@
                                 <div class="text-white text-sm font-bold leading-none">CRE</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(CREATIVITY)</div>
                             </div>
-                            <div class="text-white text-base font-black">255</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="255">0</span></div>
                         </div>
                         <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
                             <div>
                                 <div class="text-white text-sm font-bold leading-none">STR</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(STORYCRAFT)</div>
                             </div>
-                            <div class="text-white text-base font-black">250</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="250">0</span></div>
                         </div>
                         <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
                             <div>
                                 <div class="text-white text-sm font-bold leading-none">END</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(ENDURANCE)</div>
                             </div>
-                            <div class="text-white text-base font-black">235</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="235">0</span></div>
                         </div>
                         <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
                             <div>
                                 <div class="text-white text-sm font-bold leading-none">TEC</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(TECHNICAL)</div>
                             </div>
-                            <div class="text-white text-base font-black">245</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="245">0</span></div>
                         </div>
                         <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
                             <div>
                                 <div class="text-white text-sm font-bold leading-none">SPD</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(SPEED)</div>
                             </div>
-                            <div class="text-white text-base font-black">250</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="250">0</span></div>
                         </div>
                         <div class="flex items-center justify-between border-b border-gray-800/40 pb-2">
                             <div>
                                 <div class="text-white text-sm font-bold leading-none">RES</div>
                                 <div class="text-[11px] text-emerald-500/80 tracking-wider mt-0.5">(RESEARCH)</div>
                             </div>
-                            <div class="text-white text-base font-black">240</div>
+                            <div class="text-white text-base font-black"><span class="stat-number" data-target-number="240">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -1571,7 +1617,7 @@
 
                 <!-- Filter Controls inside Monitor -->
                 <div class="flex flex-wrap gap-3 mb-8 font-hud text-[11px] tracking-wider justify-center sm:justify-start">
-                    <button class="gallery-filter-btn px-4 py-2 bg-mako text-black font-extrabold transition-all" data-filter="architectural_visualization">ARCHITECTURAL_VISUALIZATION</button>
+                    <button class="gallery-filter-btn px-4 py-2 bg-mako text-black font-extrabold transition-all" data-filter="architectural_visualization">ArchViz</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="3d_art">3D_ART</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="graphic_design">GRAPHIC_DESIGN</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="ui_ux">UI_UX</button>
@@ -1670,8 +1716,8 @@
         </button>
 
         <!-- Photo Display -->
-        <div class="w-full max-w-4xl max-h-[90vh] flex items-center justify-center">
-            <img id="profile-photo-fullscreen" src="Photo Profile_Wira_01.jpg" alt="Profile Photo Full" class="max-w-full max-h-full object-contain shadow-2xl border-2 border-mako/30">
+        <div class="photo-modal-frame w-full max-w-[75vw] max-h-[75vh] flex items-center justify-center">
+            <img id="profile-photo-fullscreen" src="Photo Profile_Wira_01.jpg" alt="Profile Photo Full" class="w-full h-full object-contain shadow-2xl border-2 border-mako/30">
         </div>
     </div>
 
@@ -3270,6 +3316,7 @@
 
             modal.classList.remove("hidden");
             modal.classList.add("flex");
+            modal.classList.add("profile-photo-open");
             setTimeout(() => {
                 modal.classList.remove("opacity-0");
                 modal.classList.add("opacity-100");
@@ -3285,6 +3332,7 @@
 
             modal.classList.remove("opacity-100");
             modal.classList.add("opacity-0");
+            modal.classList.remove("profile-photo-open");
             setTimeout(() => {
                 modal.classList.remove("flex");
                 modal.classList.add("hidden");
@@ -3412,6 +3460,10 @@
         }
 
         // Faction-Aware Dynamic Skills rendering engine
+        let skillBarsAnimated = false;
+        let skillSectionObserver = null;
+        const skillSection = document.getElementById('keahlian');
+
         function buildSkillNodes(mode = 'creative') {
             const designCont = document.getElementById('design-container');
             const utilityCont = document.getElementById('utility-container');
@@ -3420,45 +3472,139 @@
             const selectedSkills = mode === 'creative' ? skillsCreative : skillsAcademic;
 
             if (designCont) {
-                designCont.innerHTML = selectedSkills.design.map(s => `
+                designCont.innerHTML = selectedSkills.design.map((s, index) => {
+                    const delay = index * 90;
+                    return `
                     <div>
                         <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider">
                             <span>${s.name}</span>
-                            <span>${s.val}%</span>
+                            <span><span class="skill-percent-number" data-target-number="${s.val}">0</span>%</span>
                         </div>
                         <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
-                            <div class="h-full ${s.class} transition-all duration-1000" style="width: ${s.val}%"></div>
+                            <div class="h-full ${s.class} skill-bar-fill transition-all duration-1000" data-target-width="${s.val}%" style="width: 0%; transition-delay: ${delay}ms;"></div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
 
             if (utilityCont) {
-                utilityCont.innerHTML = selectedSkills.utility.map(s => `
+                utilityCont.innerHTML = selectedSkills.utility.map((s, index) => {
+                    const delay = 120 + index * 90;
+                    return `
                     <div>
                         <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider">
                             <span>${s.name}</span>
-                            <span>${s.val}%</span>
+                            <span><span class="skill-percent-number" data-target-number="${s.val}">0</span>%</span>
                         </div>
                         <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
-                            <div class="h-full ${s.class} transition-all duration-1000" style="width: ${s.val}%"></div>
+                            <div class="h-full ${s.class} skill-bar-fill transition-all duration-1000" data-target-width="${s.val}%" style="width: 0%; transition-delay: ${delay}ms;"></div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
 
             if (commCont) {
-                commCont.innerHTML = selectedSkills.comm.map(s => `
+                commCont.innerHTML = selectedSkills.comm.map((s, index) => {
+                    const delay = 240 + index * 90;
+                    return `
                     <div>
                         <div class="flex justify-between text-[10px] text-gray-300 mb-1 font-hud uppercase tracking-wider">
                             <span>${s.name}</span>
-                            <span>${s.val}%</span>
+                            <span><span class="skill-percent-number" data-target-number="${s.val}">0</span>%</span>
                         </div>
                         <div class="w-full bg-[#070d19] h-2.5 rounded-none border border-mako/15 overflow-visible relative">
-                            <div class="h-full ${s.class} transition-all duration-1000" style="width: ${s.val}%"></div>
+                            <div class="h-full ${s.class} skill-bar-fill transition-all duration-1000" data-target-width="${s.val}%" style="width: 0%; transition-delay: ${delay}ms;"></div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
+            }
+        }
+
+        function animateCountUp(el, target, duration = 1000) {
+            if (!el || el.dataset.animated === 'true') return;
+            const startTime = performance.now();
+            const safeTarget = Number(target) || 0;
+
+            function tick(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                el.textContent = Math.round(progress * safeTarget);
+                if (progress < 1) {
+                    requestAnimationFrame(tick);
+                } else {
+                    el.dataset.animated = 'true';
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        function animateSkillBars() {
+            const bars = document.querySelectorAll('.skill-bar-fill');
+            bars.forEach(bar => {
+                const target = bar.dataset.targetWidth;
+                if (target) {
+                    bar.style.width = target;
+                }
+            });
+
+            const percents = document.querySelectorAll('.skill-percent-number');
+            percents.forEach(percent => {
+                const target = percent.dataset.targetNumber;
+                animateCountUp(percent, target, 900);
+            });
+        }
+
+        function animateHeroStats() {
+            if (window.heroStatsAnimated) return;
+            window.heroStatsAnimated = true;
+
+            const hpCurrent = document.getElementById('hp-current');
+            const mpCurrent = document.getElementById('mp-current');
+            const hpBar = document.getElementById('hp-bar');
+            const mpBar = document.getElementById('mp-bar');
+            const limitBar = document.getElementById('limit-bar');
+            const statNumbers = document.querySelectorAll('.stat-number');
+
+            if (hpCurrent) animateCountUp(hpCurrent, hpCurrent.dataset.targetNumber || 9999, 1200);
+            if (mpCurrent) animateCountUp(mpCurrent, mpCurrent.dataset.targetNumber || 999, 1200);
+            if (statNumbers.length) {
+                statNumbers.forEach(stat => {
+                    animateCountUp(stat, stat.dataset.targetNumber || 0, 900);
+                });
+            }
+            if (hpBar) hpBar.style.width = hpBar.dataset.targetWidth || '100%';
+            if (mpBar) mpBar.style.width = mpBar.dataset.targetWidth || '100%';
+            if (limitBar) limitBar.style.width = limitBar.dataset.targetWidth || '100%';
+        }
+
+        function setupSkillBarObserver() {
+            if (!skillSection) return;
+
+            if (skillSectionObserver) {
+                skillSectionObserver.disconnect();
+                skillSectionObserver = null;
+            }
+
+            skillSectionObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !skillBarsAnimated) {
+                        animateSkillBars();
+                        skillBarsAnimated = true;
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.28 });
+
+            skillSectionObserver.observe(skillSection);
+        }
+
+        function resetSkillAnimationIfVisible() {
+            if (!skillSection) return;
+            const rect = skillSection.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                skillBarsAnimated = false;
+                animateSkillBars();
+                skillBarsAnimated = true;
             }
         }
 
@@ -3575,14 +3721,41 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            window.scrollTo(0, 0);
             const bodyEl = document.body;
             const bootSequence = document.getElementById('boot-sequence');
             const dualEntryModal = document.getElementById('dual-entry-modal');
+            let scrollLockCount = 0;
+            const initialBodyOverflow = bodyEl.style.overflow || '';
+
+            function lockBodyScroll() {
+                scrollLockCount = Math.max(0, scrollLockCount) + 1;
+                if (scrollLockCount === 1) {
+                    bodyEl.style.overflow = 'hidden';
+                }
+            }
+            function unlockBodyScroll() {
+                scrollLockCount = Math.max(0, scrollLockCount - 1);
+                if (scrollLockCount === 0) {
+                    bodyEl.style.overflow = initialBodyOverflow;
+                }
+            }
+            function resetBodyScrollLock() {
+                scrollLockCount = 0;
+                bodyEl.style.overflow = initialBodyOverflow;
+            }
+
+            // Lock scroll while initial boot sequence is visible
+            if (bootSequence && !bootSequence.classList.contains('hidden')) {
+                lockBodyScroll();
+            }
 
             // Set initial mode on DOM Load
             const startMode = bodyEl.getAttribute('data-mode') || 'creative';
             buildSkillNodes(startMode);
             renderGalleryGrids();
+            setupSkillBarObserver();
 
             // Setup Filter triggers inside Creative modes
             const creativeFilterBtns = document.querySelectorAll(".gallery-filter-btn");
@@ -3884,6 +4057,7 @@
 
             function triggerPortalOpenAnimation() {
                 if (bootSequence) bootSequence.classList.add('hidden');
+                unlockBodyScroll();
                 
                 // Retrieve previously selected faction from local storage if available
                 const storedFaction = localStorage.getItem('system_wira_faction');
@@ -3893,6 +4067,7 @@
                 }
 
                 if (dualEntryModal) {
+                    lockBodyScroll();
                     dualEntryModal.classList.remove('hidden');
                     dualEntryModal.classList.add('flex');
                     setTimeout(() => {
@@ -3937,6 +4112,7 @@
             // Portfolio Faction switcher core engine
             function setPortfolioMode(mode) {
                 bodyEl.setAttribute('data-mode', mode);
+                if (window.setCreativeCursorMode) window.setCreativeCursorMode(mode === 'creative');
                 localStorage.setItem('system_wira_faction', mode);
                 
                 if (mode === 'creative') {
@@ -3952,7 +4128,15 @@
                 }
 
                 // Dynamic re-rendering of active list to avoid cross-mode leaks
+                skillBarsAnimated = false;
                 buildSkillNodes(mode);
+                setupSkillBarObserver();
+                resetSkillAnimationIfVisible();
+                if (mode === 'creative') {
+                    window.heroStatsAnimated = false;
+                    animateHeroStats();
+                }
+                unlockBodyScroll();
 
                 // Sync current filter button selection styling dynamically
                 const activeCreativeBtns = document.querySelectorAll(".gallery-filter-btn");
@@ -4361,6 +4545,7 @@
     }
     // ===== SHOW BOOT SEQUENCE =====
     function showBootSequence() {
+        scrollToSection('home');
         if (window.restartBootSequence) { window.restartBootSequence(); }
         else { const b = document.getElementById('boot-sequence'); if(b) b.classList.remove('hidden'); }
     }
@@ -4579,9 +4764,26 @@
             }
         }
 
+        function setCreativeCursorMode(enabled) {
+            if (dot) dot.style.display = enabled ? 'block' : 'none';
+            if (ring) ring.style.display = enabled ? 'block' : 'none';
+            if (canvas) canvas.style.display = enabled ? 'block' : 'none';
+            if (!enabled && leakCtx && canvas) {
+                leakCtx.clearRect(0, 0, canvas.width, canvas.height);
+                leakParticles = [];
+            }
+        }
+
+        window.setCreativeCursorMode = setCreativeCursorMode;
+        setCreativeCursorMode(document.body.getAttribute('data-mode') === 'creative');
+
         function leakLoop(){
             requestAnimationFrame(leakLoop);
-            if(document.body.getAttribute('data-mode')!=='creative') return;
+            const creative = document.body.getAttribute('data-mode') === 'creative';
+            if (!creative) {
+                setCreativeCursorMode(false);
+                return;
+            }
             if(!leakCtx || window.makoBlast?.active) return;
             const mx = window._mx || -999;
             const my = window._my || -999;
@@ -4596,7 +4798,11 @@
 
         function animateCursor(){
             requestAnimationFrame(animateCursor);
-            if(document.body.getAttribute('data-mode')!=='creative') return;
+            const creative = document.body.getAttribute('data-mode') === 'creative';
+            if (!creative) {
+                setCreativeCursorMode(false);
+                return;
+            }
             const mx = window._mx || -999;
             const my = window._my || -999;
             if(dot){ dot.style.left=mx+'px'; dot.style.top=my+'px'; }
