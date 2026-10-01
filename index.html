@@ -160,8 +160,8 @@
             perspective: 1200px;
         }
         #profile-photo-modal .photo-modal-frame {
-            width: min(37.5vw, calc(100% - 2rem));
-            height: min(37.5vh, calc(100% - 2rem));
+            width: min(70.3125vw, calc(100% - 2rem));
+            height: min(70.3125vh, calc(100% - 2rem));
             transform-style: preserve-3d;
             transition: transform 0.45s ease, opacity 0.45s ease;
         }
@@ -1367,10 +1367,17 @@
 
                     <div class="space-y-6">
                         <div>
-                            <h3 class="font-sans text-xl font-bold text-slate-800">WIRA MAHARDIKA PUTRA</h3>
-                            <p class="text-sm text-slate-500 font-semibold mt-1">S.Ds., M.M.</p>
-                            <p class="text-sm text-blue-600 font-bold mt-4 uppercase tracking-wider">Assistant Professor</p>
-                            <p class="text-xs text-slate-600 font-semibold mt-0.5">NIDN: 0410078803</p>
+                            <div class="flex items-center gap-4">
+                                <button type="button" class="w-20 h-24 flex-shrink-0 overflow-hidden rounded-lg border border-slate-200" onclick="openProfilePhotoModal()" aria-label="View profile photo">
+                                    <img src="Photo Profile_Wira_01.jpg" alt="Wira Mahardika Putra" class="w-full h-full object-cover object-top">
+                                </button>
+                                <div>
+                                    <h3 class="font-sans text-xl font-bold text-slate-800">WIRA MAHARDIKA PUTRA</h3>
+                                    <p class="text-sm text-slate-500 font-semibold mt-1">S.Ds., M.M.</p>
+                                    <p class="text-sm text-blue-600 font-bold mt-3 uppercase tracking-wider">Assistant Professor</p>
+                                    <p class="text-xs text-slate-600 font-semibold mt-0.5">NIDN: 0410078803</p>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="border-t border-slate-100 pt-4 space-y-3 font-sans text-sm">
@@ -1618,6 +1625,7 @@
                 <!-- Filter Controls inside Monitor -->
                 <div class="flex flex-wrap gap-3 mb-8 font-hud text-[11px] tracking-wider justify-center sm:justify-start">
                     <button class="gallery-filter-btn px-4 py-2 bg-mako text-black font-extrabold transition-all" data-filter="architectural_visualization">ArchViz</button>
+                    <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="panorama_360">360_PANORAMA</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="3d_art">3D_ART</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="graphic_design">GRAPHIC_DESIGN</button>
                     <button class="gallery-filter-btn px-4 py-2 border border-mako/30 text-gray-400 hover:text-white transition-all" data-filter="ui_ux">UI_UX</button>
@@ -1665,7 +1673,7 @@
                 <div id="panorama-container" class="hidden w-full h-full max-h-screen sm:max-h-[75vh]" style="border-radius: 8px; overflow: hidden;"></div>
                 
                 <!-- PDF Viewer Container -->
-                <div id="pdf-container" class="hidden w-full h-full max-h-screen sm:max-h-[75vh] bg-black rounded-lg overflow-hidden" style="display: flex; align-items: center; justify-content: center;">
+                <div id="pdf-container" class="hidden w-full h-full max-h-screen sm:max-h-[75vh] bg-black rounded-lg overflow-hidden">
                     <embed id="pdf-viewer" src="" type="application/pdf" width="100%" height="100%" style="border: none;">
                 </div>
 
@@ -2898,44 +2906,35 @@
             {
                 id: 4,
                 category: "3d_art",
-                title: "3D Icons Collection",
-                desc: "Set of custom 3D icons featuring clean geometry and modern design principles.",
-                src: "Image_portofolio/3D_Art/05_3D Icons.png",
+                title: "Perfume Morabito 3D Render",
+                desc: "3D fragrance bottle model and render from the Morabito perfume series.",
+                src: "Image_portofolio/3D_Art/05_Perfume Morabito.png",
                 tag: "3D ART & MODELING"
             },
             {
                 id: 5,
                 category: "3d_art",
-                title: "Steampunk Airship Engine",
-                desc: "Piston-driven rotary mechanism featuring copper PBR textures and micro-mechanical joints.",
-                src: "https://placehold.co/1200x800/021e14/10b981?text=Steampunk+Rotary+Engine+Model",
+                title: "Potion List 3D Render",
+                desc: "A collection of potion bottle models presented in a 3D scene.",
+                src: "Image_portofolio/3D_Art/06_Potion List.png",
                 tag: "3D ART & MODELING"
             },
             {
                 id: 6,
                 category: "3d_art",
-                title: "Hardy-Daytona Combat Bike",
-                desc: "High-spec futuristic heavy motorcycle mesh rendering utilizing procedural metallic paint.",
-                src: "https://placehold.co/1200x800/021e14/10b981?text=Hardy-Daytona+Futuristic+Bike",
+                title: "7th Heaven Potion Store",
+                desc: "3D environment depicting the 7th Heaven potion store.",
+                src: "Image_portofolio/3D_Art/07_7th Heaven Potion Store.png",
                 tag: "3D ART & MODELING"
             },
             {
                 id: 7,
                 category: "3d_art",
-                title: "Cyberpunk Cyberware Arm",
-                desc: "Detailed biomechanical prosthetic limb showing intricate internal wire bundles.",
-                src: "https://placehold.co/1200x800/021e14/10b981?text=Biomechanical+Prosthetic+Arm",
+                title: "3D Icons Collection",
+                desc: "Set of custom 3D icons featuring clean geometry and modern design principles.",
+                src: "Image_portofolio/3D_Art/08_3D Icons.png",
                 tag: "3D ART & MODELING"
             },
-            {
-                id: 8,
-                category: "3d_art",
-                title: "Mythic Summon Odin Blade",
-                desc: "Legendary broadsword asset crafted with runic engraving details and glowing sigil decals.",
-                src: "https://placehold.co/1200x800/021e14/10b981?text=Mythic+Odin+Runesword+Asset",
-                tag: "3D ART & MODELING"
-            },
-
             // ================= TAB 2: ARCH_VISUALIZATION =================
             {
                 id: 9,
@@ -3002,8 +3001,58 @@
                 tag: "ARCHITECTURAL VISUALIZATION"
             },
             {
-                id: 17,
+                id: 46,
                 category: "architectural_visualization",
+                title: "Warm Studio Room",
+                desc: "Interior visualization of a studio room with warm lighting.",
+                src: "Image_portofolio/ArcVis/09_Warm Studio Room.png",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+            {
+                id: 47,
+                category: "architectural_visualization",
+                title: "Cozy Guestroom",
+                desc: "Interior visualization of a comfortable guest room.",
+                src: "Image_portofolio/ArcVis/10_Cozy Guestroom.png",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+            {
+                id: 48,
+                category: "architectural_visualization",
+                title: "Comfy Work Office",
+                desc: "Interior visualization of a comfortable home office.",
+                src: "Image_portofolio/ArcVis/11. Comfy Work Office.png",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+            {
+                id: 49,
+                category: "architectural_visualization",
+                title: "Waiting Room",
+                desc: "Interior visualization of a waiting room.",
+                src: "Image_portofolio/ArcVis/12. Waiting Room.jpg",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+            {
+                id: 50,
+                category: "architectural_visualization",
+                title: "Preschool Floor Plan - First Floor",
+                desc: "Architectural floor plan for the first floor of a preschool.",
+                src: "Image_portofolio/ArcVis/13. Preschool Floor Plan 1st Floor.jpg",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+            {
+                id: 51,
+                category: "architectural_visualization",
+                title: "Preschool Floor Plan - Second Floor",
+                desc: "Architectural floor plan for the second floor of a preschool.",
+                src: "Image_portofolio/ArcVis/14. Preschool Floor Plan 2nd Floor.jpg",
+                tag: "ARCHITECTURAL VISUALIZATION"
+            },
+
+            // ================= TAB 3: 360 PANORAMA =================
+            {
+                id: 52,
+                category: "panorama_360",
                 title: "Luxury Bedroom 360° Panorama",
                 desc: "Immersive 360-degree panoramic view of a luxury bedroom suite. Click the link below to explore interactively.",
                 src: "Image_portofolio/ArcVis/Luxury Bedroom_360 Panorama.png",
@@ -3015,81 +3064,33 @@
                 ]
             },
 
-            // ================= TAB 3: GRAPHIC DESIGN =================
+            // ================= TAB 4: GRAPHIC DESIGN =================
             {
                 id: 18,
                 category: "graphic_design",
-                title: "Corporate Identity Blueprint",
-                desc: "Grid design principles demonstrating modular layouts, font hierarchies, and palette systems.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Brand+Identity+Design+System",
+                title: "Promotional Perfume Poster",
+                desc: "Promotional poster design for a perfume product.",
+                src: "Image_portofolio/Graphic_Design/01_Promotional Poster Parfume.png",
                 tag: "GRAPHIC DESIGN"
             },
             {
                 id: 19,
                 category: "graphic_design",
-                title: "Promotional Vector Campaign",
-                desc: "Custom high-contrast layout configurations for digital brand marketing collateral.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Promotional+Graphic+Campaign",
+                title: "Kiku Logo",
+                desc: "Logo design for Kiku.",
+                src: "Image_portofolio/Graphic_Design/Logo Kiku.jpg",
                 tag: "GRAPHIC DESIGN"
             },
             {
                 id: 20,
                 category: "graphic_design",
-                title: "Shinra Corp Annual Prospectus",
-                desc: "Clean financial booklet layout showcasing geometric typography and tactical metadata lists.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Shinra+Corp+Annual+Prospectus",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 21,
-                category: "graphic_design",
-                title: "UNIKOM Academic Poster",
-                desc: "Exhibition design system highlighting color-blocking grids and bilingual research data.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=UNIKOM+Academic+Poster+Grid",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 22,
-                category: "graphic_design",
-                title: "Cyber-Punk Synthwave LP Cover",
-                desc: "Album sleeve artwork displaying retro-futuristic duotone neon graphics and wireframe lines.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Synthwave+Vinyl+Album+Sleeve",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 23,
-                category: "graphic_design",
-                title: "Vocational Syllabus Catalog",
-                desc: "Print-ready layout publication showcasing comprehensive curriculum flow charts and diagrams.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Vocational+Syllabus+Publication",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 24,
-                category: "graphic_design",
-                title: "Minimalist Branding Grid",
-                desc: "Visual dissection of logo proportions matching perfect golden-ratio circular grids.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Minimalist+Branding+Golden+Ratio",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 25,
-                category: "graphic_design",
-                title: "Lifestream Brew Packaging",
-                desc: "Detailed label design mockup wrapping high-end structural dynamic bottle rendering containers.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Lifestream+Can+Packaging+Design",
-                tag: "GRAPHIC DESIGN"
-            },
-            {
-                id: 26,
-                category: "graphic_design",
-                title: "Geometric Vector Crest",
-                desc: "A clean, modern brand emblem combining sharp angular geometry with sophisticated corporate heraldry.",
-                src: "https://placehold.co/1200x800/1e1b4b/818cf8?text=Geometric+Corporate+Crest+Logo",
+                title: "TK Tunas Alam Logo",
+                desc: "Logo design for TK Tunas Alam.",
+                src: "Image_portofolio/Graphic_Design/Logo TK Tunas Alam.jpg",
                 tag: "GRAPHIC DESIGN"
             },
 
-            // ================= TAB 4: UI / UX =================
+            // ================= TAB 5: UI / UX =================
             {
                 id: 27,
                 category: "ui_ux",
@@ -3163,7 +3164,7 @@
                 tag: "UI/UX DESIGN"
             },
 
-            // ================= TAB 5: ILLUSTRATION =================
+            // ================= TAB 6: ILLUSTRATION =================
             {
                 id: 36,
                 category: "illustration",
@@ -3237,7 +3238,7 @@
                 tag: "ILLUSTRATION"
             },
 
-            // ================= TAB 6: COMIC =================
+            // ================= TAB 7: COMIC =================
             {
                 id: 45,
                 category: "comic",
@@ -3246,8 +3247,24 @@
                 src: "Image_portofolio/Comic/Comic Saga.pdf",
                 tag: "COMIC",
                 isPdf: true
+            },
+            {
+                id: 52,
+                category: "comic",
+                title: "Dearest",
+                desc: "Comic presented as a PDF.",
+                src: "Image_portofolio/Comic/Dearest.pdf",
+                tag: "COMIC",
+                isPdf: true
             }
         ];
+
+        const galleryCategoryIds = new Map();
+        galleryData.forEach(item => {
+            const categoryId = (galleryCategoryIds.get(item.category) || 0) + 1;
+            galleryCategoryIds.set(item.category, categoryId);
+            item.id = categoryId;
+        });
 
         let activeGalleryFilter = "architectural_visualization";
         let activeCarouselIndex = 0;
@@ -3360,7 +3377,7 @@
                 if (pdfContainer) {
                     pdfContainer.classList.remove("hidden");
                     if (pdfViewer) {
-                        pdfViewer.src = currentItem.src;
+                        pdfViewer.src = `${currentItem.src}#toolbar=0&navpanes=0`;
                     }
                 }
             } else if (currentItem.isPanorama) {
